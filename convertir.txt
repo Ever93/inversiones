@@ -1,0 +1,1 @@
+pyuic5 inversiones.ui -o inversiones.py
