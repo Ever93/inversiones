@@ -1,8 +1,11 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5 import QtCore
 from db import conectar
 import sqlite3
+from capitalinicial import Ui_MainWindow as Ui_CapitalInicial, CapitalInicialWindow
 
 class MontoInputDialog(QDialog):
     def __init__(self):
@@ -22,10 +25,27 @@ class MontoInputDialog(QDialog):
 
         self.setLayout(layout)
 
+class CapitalInicialWindow(QtWidgets.QMainWindow):
+    closed = QtCore.pyqtSignal()
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_CapitalInicial()
+        self.ui.setupUi(self)
+
+        # Conecta el botón para cerrar la ventana con el método de cierre personalizado
+        self.ui.ButtonDelet.clicked.connect(self.cerrar_ventana)
+    def closeEvent(self, event):
+        # Emite la señal cuando la ventana se cierra
+        self.closed.emit()
+
+    def cerrar_ventana(self):
+        self.close()
+        
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        
+        self.capital_inicial_window = None  # Para mantener un seguimiento de la ventana de capital inicial
+
         self.setObjectName("MainWindow")
         self.resize(833, 654)
         
@@ -80,7 +100,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cargaCI = QtWidgets.QPushButton(self.centralwidget)
         self.cargaCI.setGeometry(QtCore.QRect(20, 70, 75, 23))
         self.cargaCI.setObjectName("cargaCI")
-        self.cargaCI.clicked.connect(self.abrir_dialogo)
+        self.cargaCI.clicked.connect(self.abrir_capital_inicial)
         
         self.ingreso = QtWidgets.QPushButton(self.centralwidget)
         self.ingreso.setGeometry(QtCore.QRect(150, 160, 75, 23))
@@ -150,31 +170,41 @@ class MainWindow(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
         # Llamar al método para cargar el saldo desde la base de datos
         self.cargar_saldo_desde_db()
-    def abrir_dialogo(self):
-        dialogo = MontoInputDialog()
-        if dialogo.exec_() == QDialog.Accepted:
-            monto = dialogo.monto_input.text()
-            # Actualiza el texto de self.capinicial con el monto ingresado
-            self.textCI.setPlainText(monto)
-            font = QtGui.QFont()
-            font.setPointSize(12)  # Tamaño de fuente deseado
-            self.textCI.setFont(font)
+        
+    def abrir_capital_inicial(self):
+        if self.capital_inicial_window is None:
+        # Crea una instancia de la ventana de capital inicial
+            self.capital_inicial_window = CapitalInicialWindow()
+
+        # Deshabilita la ventana principal
+            self.setEnabled(False)
+
+        # Conecta la señal de cierre de la ventana de capital inicial
+            self.capital_inicial_window.closed.connect(self.activar_ventana_principal)
+
+        # Muestra la ventana de capital inicial
+            self.capital_inicial_window.show()
+    def activar_ventana_principal(self):
+        # Habilita nuevamente la ventana principal
+        self.setEnabled(True)
+        self.capital_inicial_window = None
             
     def cargar_saldo_desde_db(self):
         try:
         #Usar la función conectar del archivo conexion_db.py
             conn, cursor = conectar()
         # Realizar una consulta SQL para obtener el saldo
-            cursor.execute("SELECT monto FROM saldo ORDER BY id DESC LIMIT 1")
+            cursor.execute("SELECT monto, fecha FROM saldo ORDER BY id DESC LIMIT 1")
             resultado = cursor.fetchone()
         # Si se encontró un resultado, mostrarlo en el QTextBrowser
             if resultado:
-                monto = resultado[0]
+                monto, fecha = resultado
                 self.textSaldo.setPlainText(str(monto))
+                self.textFechaSaldo.setPlainText(str(fecha))
                 font = QtGui.QFont()
                 font.setPointSize(12)  # Tamaño de fuente deseado
                 self.textSaldo.setFont(font)
-
+                self.textFechaSaldo.setFont(font)
         # Cerrar la conexión a la base de datos
             conn.close()
         except sqlite3.Error as e:
