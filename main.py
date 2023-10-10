@@ -3,6 +3,9 @@ from tkinter import *
 from tkinter import messagebox, ttk, filedialog
 import tkinter as tk
 import subprocess
+from cliente import CRMApp
+from proveedores import ProveedoresApp
+from configCuotas import ConfigCuotasApp
 import locale
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -15,8 +18,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from egreso import EgresoApp
-from ingreso import IngresoApp
 
 
 
@@ -25,6 +26,21 @@ def conectar():
     c = conn.cursor()
     return conn, c
 
+def obtener_nombres_clientes():
+    conn, c = conectar()
+    c.execute("SELECT nombre FROM clientes")
+    nombres = c.fetchall()
+    conn.close()
+    return nombres
+
+def obtener_nombres_proveedores():
+    conn, c = conectar()
+    c.execute("SELECT nombre FROM proveedores")
+    nombres = c.fetchall()
+    conn.close()
+    return nombres
+
+
 
 # Establecer la configuración local para el separador de miles
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -32,7 +48,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 class PresupuestoApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Control')
+        self.root.title('Presupuesto')
         self.root.geometry('1100x650')
         self.observacion_texto = ""  # Variable de instancia para almacenar el texto de la observación
         self.lbl_cotizacion_value = StringVar()
@@ -41,32 +57,150 @@ class PresupuestoApp:
         self.selected_proveedor = ""  
         self.create_menu()
         self.create_widgets()
-        
+        self.render_clientes()
+        self.render_proveedores()
         self.elementos_eliminados = {}
     #Obtener datos de tabla cuotas
+    def obtener_datos_cuotas(self):
+        conn, c = conectar()
+        c.execute("SELECT cantidadcuotas FROM cuotas")
+        cantidad = [fila[0] for fila in c.fetchall()]
+        conn.close()
+        return cantidad
+
     def create_menu(self):
         menu_bar = tk.Menu(self.root)
         file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Abrir", command=self.abrir_explorador_archivos)
+        file_menu.add_separator()
+        file_menu.add_command(label="Salir", command=self.root.quit)
+        #Menu Opciones
+        options_menu = tk.Menu(menu_bar, tearoff=0)
+        options_menu.add_command(label="Cliente", command=self.abrir_ventana_crm)
+        options_menu.add_command(label="Proveedores", command=self.abrir_ventana_proveedores)
+        options_menu.add_command(label="Empresa", command=self.opcion_empresa)
+        options_menu.add_command(label="Config. Cuotas", command=self.abrir_ventana_cuotas)
+
+        menu_bar.add_cascade(label="Archivo", menu=file_menu)
+        menu_bar.add_cascade(label="Opciones", menu=options_menu)
+        self.root.config(menu=menu_bar)
 
     def create_widgets(self):
         frame = tk.Frame(self.root)
-        frame.grid(row=0, column=0, padx=10, pady=10)
-        Label(frame, text='Control de Inversión', font=('Arial', 14, 'bold'), anchor="w").grid(column=0, row=0)
+        frame.pack()
+        Label(frame, text='Sistema', font=('Arial', 14, 'bold'), anchor="w").grid(column=0, row=0)
+        frame1 = tk.LabelFrame(self.root, text='Presupuesto', padx=10, pady=10, borderwidth=5)
+        frame1.pack(padx=10, pady=10)
         
-        btn_dolar = tk.Button(frame, text='Cargar', command=self.dolar_clicked)
-        btn_dolar.grid(column=0, row=2)
-        self.lbl_cotizacion = Label(frame, text='Capital Inicial: ')
-        self.lbl_cotizacion.grid(column=0, row=1, columnspan=2)
+        combo_frame_cliente = tk.Frame(frame1)
+        combo_frame_cliente.grid(column=0, row=1)
+        combo_label_cliente = ttk.Label(combo_frame_cliente, text='Cliente')
+        combo_label_cliente.pack(side=tk.LEFT)
+        self.combo_cliente = ttk.Combobox(combo_frame_cliente, values=[], postcommand=self.actualizar_coincidencias_cliente)
+        self.combo_cliente.set('')  # Set the selected value to empty initially
+        self.combo_cliente.pack(side=tk.LEFT)
+        self.combo_cliente.bind('<<ComboboxSelected>>', self.cliente_selected)  # Add event handler
+       
+        combo_frame_proveedor = tk.Frame(frame1)
+        combo_frame_proveedor.grid(column=1, row=1)
+        combo_label_proveedor = ttk.Label(combo_frame_proveedor, text='Proveedor')
+        combo_label_proveedor.pack(side=tk.LEFT)
+        self.combo_proveedor = ttk.Combobox(combo_frame_proveedor, values=[], postcommand=self.actualizar_coincidencias_proveedor)
+        self.combo_proveedor.set('')  # Set the selected value to empty initially
+        self.combo_proveedor.pack(side=tk.LEFT)
+        self.combo_proveedor.bind('<<ComboboxSelected>>', self.proveedor_selected)  # Add event handler
 
-        self.lbl_interes = Label(frame, text='Saldo:')
-        self.lbl_interes.grid(column=2, row=1, columnspan=2)
+        btn_dolar = tk.Button(frame1, text='Dolar', command=self.dolar_clicked)
+        btn_dolar.grid(column=2, row=1)
+        self.lbl_cotizacion = Label(frame1, text='Cotización: ')
+        self.lbl_cotizacion.grid(column=2, row=0)
 
-        btn_observacion = tk.Button(frame, text='Egreso', command=self.abrir_ventana_egreso)
-        btn_observacion.grid(column=0, row=3)
+        btn_porcentaje = tk.Button(frame1, text='%', command=self.porcentaje_clicked)
+        btn_porcentaje.grid(column=3, row=1)
+        self.lbl_interes = Label(frame1, text='Interés:')
+        self.lbl_interes.grid(column=3, row=0)
+
+        btn_eliminar_producto = tk.Button(frame1, text='Eliminar Producto', command=self.eliminar_producto_clicked)
+        btn_eliminar_producto.grid(column=4, row=1)
+
+        btn_agregar_producto = tk.Button(frame1, text='Agregar Producto', command=self.agregar_producto_clicked)
+        btn_agregar_producto.grid(column=5, row=1)
+
+        self.total_guarani = 0
+        self.total_label = Label(frame1, text='Total:', font=('Arial', 12, 'bold'), anchor="w")
+        self.total_label.grid(column=0, row=3)
         
-        btn_observacion = tk.Button(frame, text='Ingreso', command=self.abrir_ventana_ingreso)
-        btn_observacion.grid(column=1, row=3)
+        btn_observacion = tk.Button(frame1, text='Observacion', command=self.abrir_ventana_observacion)
+        btn_observacion.grid(column=2, row=3)
+        
+        btn_guardar_pedido = tk.Button(frame1, text='Guardar', command=self.guardar_pedido_clicked)
+        btn_guardar_pedido.grid(column=1, row=3)
+        
+        btn_generar_pedido = tk.Button(frame1, text='Pedido', command=self.generar_pedido_clicked)
+        btn_generar_pedido.grid(column=3, row=3)
 
+        btn_generar_presupuesto = tk.Button(frame1, text='Presupuesto', command=self.generar_presupuesto_clicked)
+        btn_generar_presupuesto.grid(column=4, row=3)
+
+        tree_frame = tk.Frame(frame1)
+        tree_frame.grid(column=0, row=2, columnspan=6)
+        tree_label = ttk.Label(tree_frame, text='Presupuesto')
+        tree_label.pack()
+
+        self.tree = ttk.Treeview(tree_frame, selectmode='browse')
+        self.tree['columns'] = ('Codigo', 'Cantidad', 'Producto', 'Guarani', 'Dolar')
+        self.tree.column('#0', width=0, stretch=tk.NO)
+        self.tree.column('Codigo')
+        self.tree.column('Cantidad')
+        self.tree.column('Producto')
+        self.tree.column('Guarani')
+        self.tree.column('Dolar')
+
+        self.tree.heading('Codigo', text='Codigo')
+        self.tree.heading('Cantidad', text='Cantidad')
+        self.tree.heading('Producto', text='Producto')
+        self.tree.heading('Guarani', text='Guarani')
+        self.tree.heading('Dolar', text='Dolar')
+        self.tree.pack()
+        #Creamos label para cargar observacion
+        observacion_label = Label(self.root, font=('Arial', 12, 'bold'), text='Observación:')
+        observacion_label.pack(anchor='w', padx='20')
+
+        self.observacion_frame = Frame(self.root, bd=1, relief='solid',  width=200, height=200)  # Ajusta los valores de width y height según tu preferencia
+        self.observacion_frame.pack(pady=1, padx=35, anchor='w', fill='both')    
+#Aqui se muestra el texto cargado en observacion
+        self.observacion_text_label = Label(self.observacion_frame, font=('Times New Roman', 12), text=self.observacion_texto, anchor='w', justify='left')
+        self.observacion_text_label.pack(pady=5, padx=5, anchor='w')
+
+        # Frame para cuotas corridas
+        cuotas_corridas_frame = tk.Frame(self.root, bd=1, relief='solid', width=100, height=100)
+        cuotas_corridas_frame.pack(side='left', padx=5, pady=10, anchor='w', fill='both', expand=True)
+
+        cuotas_corridas_label = tk.Label(cuotas_corridas_frame, font=('Arial', 12, 'bold'), text='Cuotas corridas:')
+        cuotas_corridas_label.pack(anchor='w', padx=20)
+
+        cantidad_cuotas_corridas = self.obtener_datos_cuotas()
+        for cantidad_cuotas in cantidad_cuotas_corridas:
+            label = tk.Label(cuotas_corridas_frame, text=f"{cantidad_cuotas} x")
+            label.pack(anchor='w')
+
+        # Frame para cuotas con entrega
+        cuotas_entrega_frame = tk.Frame(self.root, bd=1, relief='solid', width=100, height=100)
+        cuotas_entrega_frame.pack(side='left', padx=5, pady=10, anchor='w', fill='both', expand=True)
+
+        cuotas_entrega_label = tk.Label(cuotas_entrega_frame, font=('Arial', 12, 'bold'), text='Cuotas con entrega:')
+        boton_calcular = tk.Button(cuotas_entrega_frame, text="Calcular", command="")#calcular_cuotas_entrega
+
+        cuotas_entrega_label.pack(side='left', padx=20)
+        boton_calcular.pack(side='left', padx=20)
+
+        #cantidad_cuotas_entrega = self.obtener_datos_entrega()
+        #for cantidad_entrega in cantidad_cuotas_entrega:
+            #label = Label(cuotas_entrega_frame, text=f"{cantidad_entrega} x")
+            #label.pack(anchor='w')
+
+    
+        
     def abrir_ventana_observacion(self):
         top = Toplevel()
         top.title('Observación')
@@ -112,13 +246,14 @@ class PresupuestoApp:
     def abrir_explorador_archivos(self):
         subprocess.run(["explorer.exe"])
         
-    def abrir_ventana_egreso(self):
-        egreso_app = EgresoApp(self)  # Pasar self como argumento
-        egreso_app.mainloop()  # Mostrar la ventana CRMApp
+    def abrir_ventana_crm(self):
+        self.crm_app = CRMApp(self)  # Pasar self como argumento
+        self.actualizar_nombres_clientes()  # Actualizar los nombres de clientes en el Combobox
+        self.crm_app.mainloop()  # Mostrar la ventana CRMApp
         
-    def abrir_ventana_ingreso(self):
-        ingreso_app = IngresoApp(self)
-        ingreso_app.mainloop()
+    def abrir_ventana_proveedores(self):
+        proveedores_app = ProveedoresApp(self)
+        proveedores_app.mainloop()
 
     def opcion_empresa(self):
         pass

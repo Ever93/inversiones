@@ -1,7 +1,7 @@
 import sqlite3
 
 def conectar():
-    conn = sqlite3.connect('comveta.db')
+    conn = sqlite3.connect('inversiones.db')
     c = conn.cursor()
     return conn, c
 

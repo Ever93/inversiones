@@ -1,6 +1,7 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
+import sqlite3
 
 class MontoInputDialog(QDialog):
     def __init__(self):
@@ -23,7 +24,7 @@ class MontoInputDialog(QDialog):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-
+        
         self.setObjectName("MainWindow")
         self.resize(833, 654)
         
@@ -38,7 +39,6 @@ class MainWindow(QtWidgets.QMainWindow):
         font.setWeight(75)
         self.titulo.setFont(font)
         self.titulo.setObjectName("titulo")
-        
         self.capinicial = QtWidgets.QLabel(self.centralwidget)
         self.capinicial.setGeometry(QtCore.QRect(20, 50, 121, 21))
         font = QtGui.QFont()
@@ -147,7 +147,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.retranslateUi(self)
         QtCore.QMetaObject.connectSlotsByName(self)
-
+        # Llamar al método para cargar el saldo desde la base de datos
+        self.cargar_saldo_desde_db()
     def abrir_dialogo(self):
         dialogo = MontoInputDialog()
         if dialogo.exec_() == QDialog.Accepted:
@@ -158,6 +159,29 @@ class MainWindow(QtWidgets.QMainWindow):
             font.setPointSize(12)  # Tamaño de fuente deseado
             self.textCI.setFont(font)
             
+    def cargar_saldo_desde_db(self):
+        try:
+        # Conectarse a la base de datos
+            conn = sqlite3.connect("inversiones.db")
+            cursor = conn.cursor()
+
+        # Realizar una consulta SQL para obtener el saldo
+            cursor.execute("SELECT monto FROM saldo ORDER BY id DESC LIMIT 1")
+            resultado = cursor.fetchone()
+
+        # Si se encontró un resultado, mostrarlo en el QTextBrowser
+            if resultado:
+                monto = resultado[0]
+                self.textSaldo.setPlainText(str(monto))
+                font = QtGui.QFont()
+                font.setPointSize(12)  # Tamaño de fuente deseado
+                self.textSaldo.setFont(font)
+
+        # Cerrar la conexión a la base de datos
+            conn.close()
+        except sqlite3.Error as e:
+            print("Error al acceder a la base de datos:", e)
+    
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("MainWindow", "MainWindow"))

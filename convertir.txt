@@ -1,1 +1,4 @@
 pyuic5 inversiones.ui -o inversiones.py
+
+Insertar datos sql
+INSERT INTO saldo(fecha, monto) VALUES('03/10/23', '2000000')
