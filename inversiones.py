@@ -1,6 +1,7 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
+from db import conectar
 import sqlite3
 
 class MontoInputDialog(QDialog):
@@ -161,14 +162,11 @@ class MainWindow(QtWidgets.QMainWindow):
             
     def cargar_saldo_desde_db(self):
         try:
-        # Conectarse a la base de datos
-            conn = sqlite3.connect("inversiones.db")
-            cursor = conn.cursor()
-
+        #Usar la función conectar del archivo conexion_db.py
+            conn, cursor = conectar()
         # Realizar una consulta SQL para obtener el saldo
             cursor.execute("SELECT monto FROM saldo ORDER BY id DESC LIMIT 1")
             resultado = cursor.fetchone()
-
         # Si se encontró un resultado, mostrarlo en el QTextBrowser
             if resultado:
                 monto = resultado[0]
