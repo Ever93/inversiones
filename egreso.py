@@ -87,14 +87,21 @@ class MyMainWindow(QtWidgets.QMainWindow):
     def insertar_datos(self):
         fecha = self.lineEditFecha.text()
         detalle = self.lineEditDetalle.text()
-        monto = self.lineEditMonto.text()
+        monto_egreso = float(self.lineEditMonto.text())
 
-        if fecha and detalle and monto:
+        if fecha and detalle and monto_egreso:
             try:
                 conexion, cursor = conectar()  # Utiliza la función conectar
 
                 # Sentencia SQL para insertar datos en la tabla "egreso"
-                cursor.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha, detalle, monto))
+                cursor.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha, detalle, monto_egreso))
+                # Obtener el saldo actual desde la tabla "saldo"
+                cursor.execute("SELECT monto FROM saldo ORDER BY id DESC LIMIT 1")
+                saldo_actual = cursor.fetchone()[0]
+                # Calcular el nuevo saldo restando el monto del egreso
+                nuevo_saldo = saldo_actual - monto_egreso
+                # Actualizar el saldo en la tabla "saldo"
+                cursor.execute("INSERT INTO saldo (fecha, monto) VALUES (?, ?)", (fecha, nuevo_saldo))
 
                 conexion.commit()  # Confirmar la transacción
                 conexion.close()   # Cerrar la conexión
