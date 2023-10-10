@@ -6,6 +6,7 @@ from PyQt5 import QtCore
 from db import conectar
 import sqlite3
 from capitalinicial import Ui_MainWindow as Ui_CapitalInicial, CapitalInicialWindow
+from egreso import MyMainWindow
 
 class MontoInputDialog(QDialog):
     def __init__(self):
@@ -45,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.capital_inicial_window = None  # Para mantener un seguimiento de la ventana de capital inicial
-
+        self.egreso_window = None
         self.setObjectName("MainWindow")
         self.resize(833, 654)
         
@@ -109,6 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.egreso = QtWidgets.QPushButton(self.centralwidget)
         self.egreso.setGeometry(QtCore.QRect(610, 160, 75, 23))
         self.egreso.setObjectName("egreso")
+        self.egreso.clicked.connect(self.abrir_egreso)
         
         self.treeViewIngreso = QtWidgets.QTreeView(self.centralwidget)
         self.treeViewIngreso.setGeometry(QtCore.QRect(10, 200, 391, 391))
@@ -170,18 +172,24 @@ class MainWindow(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
         # Llamar al método para cargar el saldo desde la base de datos
         self.cargar_saldo_desde_db()
-        
+    def abrir_egreso(self):
+        if self.egreso_window is None:
+            self.egreso_window = MyMainWindow()
+            self.egreso_window.destroyed.connect(self.activar_ventana_principal)
+
+        self.egreso_window.show()
+
+    def activar_ventana_egreso(self):
+        self.setEnabled(True)
+        self.egreso_window = None 
     def abrir_capital_inicial(self):
         if self.capital_inicial_window is None:
         # Crea una instancia de la ventana de capital inicial
             self.capital_inicial_window = CapitalInicialWindow()
-
         # Deshabilita la ventana principal
             self.setEnabled(False)
-
         # Conecta la señal de cierre de la ventana de capital inicial
             self.capital_inicial_window.closed.connect(self.activar_ventana_principal)
-
         # Muestra la ventana de capital inicial
             self.capital_inicial_window.show()
     def activar_ventana_principal(self):

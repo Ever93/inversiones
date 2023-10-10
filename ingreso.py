@@ -1,109 +1,89 @@
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
-from db import conectar  # Importa el archivo db.py (o el nombre correcto de tu archivo)
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-class IngresoApp(Tk):
-    def __init__(self, parent):
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(667, 264)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.labeltitulo = QtWidgets.QLabel(self.centralwidget)
+        self.labeltitulo.setGeometry(QtCore.QRect(250, 0, 211, 41))
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labeltitulo.setFont(font)
+        self.labeltitulo.setObjectName("labeltitulo")
+        self.lineEditFecha = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditFecha.setGeometry(QtCore.QRect(70, 60, 113, 20))
+        self.lineEditFecha.setObjectName("lineEditFecha")
+        self.lineEditDetalle = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditDetalle.setGeometry(QtCore.QRect(80, 90, 571, 61))
+        self.lineEditDetalle.setObjectName("lineEditDetalle")
+        self.lineEditMonto = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditMonto.setGeometry(QtCore.QRect(70, 160, 113, 21))
+        self.lineEditMonto.setObjectName("lineEditMonto")
+        self.labelFecha = QtWidgets.QLabel(self.centralwidget)
+        self.labelFecha.setGeometry(QtCore.QRect(10, 60, 61, 16))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelFecha.setFont(font)
+        self.labelFecha.setObjectName("labelFecha")
+        self.labelDetalle = QtWidgets.QLabel(self.centralwidget)
+        self.labelDetalle.setGeometry(QtCore.QRect(10, 100, 71, 41))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelDetalle.setFont(font)
+        self.labelDetalle.setObjectName("labelDetalle")
+        self.labelMonto = QtWidgets.QLabel(self.centralwidget)
+        self.labelMonto.setGeometry(QtCore.QRect(10, 160, 81, 20))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelMonto.setFont(font)
+        self.labelMonto.setObjectName("labelMonto")
+        self.ButtonRegis = QtWidgets.QPushButton(self.centralwidget)
+        self.ButtonRegis.setGeometry(QtCore.QRect(70, 200, 75, 23))
+        self.ButtonRegis.setObjectName("ButtonRegis")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(200, 200, 75, 23))
+        self.pushButton_2.setObjectName("pushButton_2")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 667, 21))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.labeltitulo.setText(_translate("MainWindow", "Registre Ingreso"))
+        self.labelFecha.setText(_translate("MainWindow", "Fecha:"))
+        self.labelDetalle.setText(_translate("MainWindow", "Detalle:"))
+        self.labelMonto.setText(_translate("MainWindow", "Monto:"))
+        self.ButtonRegis.setText(_translate("MainWindow", "Registrar"))
+        self.pushButton_2.setText(_translate("MainWindow", "Editar"))
+
+class MyMainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.title('Ingreso')
-        self.parent = parent
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
-        self.conn, self.c = conectar()
-
-        def render_proveedores():
-            rows = self.c.execute("SELECT * FROM proveedores").fetchall()
-            self.tree.delete(*self.tree.get_children())
-            for row in rows:
-                self.tree.insert('', END, row[0], values=(row[1], row[2], row[3]))
-                
-
-        def insertar(proveedores):
-            self.c.execute("""
-                INSERT INTO proveedores (nombre, telefono, direccion) VALUES (?, ?, ?)
-                """, (proveedores['nombre'], proveedores['telefono'], proveedores['direccion']))
-            self.conn.commit()
-            
-            render_proveedores()
-
-        def nuevo_proveedor():
-            def guardar():
-                
-                if not nombre.get():
-                    messagebox.showerror('Error', 'El nombre es obligatorio')
-                    return
-                if not telefono.get():
-                    messagebox.showerror('Error', 'El teléfono es obligatorio')
-                    return
-                if not direccion.get():
-                    messagebox.showerror('Error', 'La dirección es obligatoria')
-                    return
-
-                proveedores = {
-                    'nombre': nombre.get(),
-                    'telefono': telefono.get(),
-                    'direccion': direccion.get()
-                }
-
-                insertar(proveedores)
-                top.destroy()
-
-            # Definimos una subventana
-            top = Toplevel()
-            top.title('Nuevo Proveedor')
-
-            lnombre = Label(top, text='Nombre:')
-            nombre = Entry(top, width=40)
-            lnombre.grid(row=0, column=0, padx=5, pady=5)
-            nombre.grid(row=0, column=1, padx=5, pady=5)
-
-            ltelefono = Label(top, text='Teléfono:')
-            telefono = Entry(top, width=40)
-            ltelefono.grid(row=1, column=0, padx=5, pady=5)
-            telefono.grid(row=1, column=1, padx=5, pady=5)
-
-            ldireccion = Label(top, text='Dirección:')
-            direccion = Entry(top, width=40)
-            ldireccion.grid(row=2, column=0, padx=5, pady=5)
-            direccion.grid(row=2, column=1, padx=5, pady=5)
-
-            btn_guardar = Button(top, text='Guardar', command=guardar)
-            btn_guardar.grid(row=3, column=1)
-
-            # Creamos el main loop para nuestra segunda ventana
-            top.mainloop()
-
-        def eliminar_proveedor():
-            id = self.tree.selection()[0]
-            proveedor = self.c.execute("SELECT * FROM proveedores where id = ?", (id,)).fetchone()
-            respuesta = messagebox.askokcancel('Seguro', 'Estas seguro de querer eliminar el proveedor ' + proveedor[1] + '?')
-            if respuesta:
-                self.c.execute("DELETE FROM proveedores where id = ?", (id,))
-                self.conn.commit()
-                render_proveedores()
-            else:
-                pass
-            
-        btn_nuevo_proveedor = Button(self, text='Nuevo proveedor', command=nuevo_proveedor)
-        btn_nuevo_proveedor.grid(column=0, row=0)
-
-        btn_eliminar_proveedor = Button(self, text='Eliminar proveedor', command=eliminar_proveedor)
-        btn_eliminar_proveedor.grid(column=1, row=0)
-
-        self.tree = ttk.Treeview(self)
-        self.tree['columns'] = ('Nombre', 'Teléfono', 'Dirección')
-        self.tree.column('#0', width=0, stretch=NO)
-        self.tree.column('Nombre')
-        self.tree.column('Teléfono')
-        self.tree.column('Dirección')
-
-        self.tree.heading('Nombre', text='Nombre')
-        self.tree.heading('Teléfono', text='Teléfono')
-        self.tree.heading('Dirección', text='Dirección')
-        self.tree.grid(column=0, row=1, columnspan=4)
-
-        render_proveedores()
-
-if __name__ == '__main__':
-    app = IngresoApp()
-    app.mainloop()
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = MyMainWindow()
+    MainWindow.show()
+    sys.exit(app.exec_())

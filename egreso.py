@@ -1,107 +1,127 @@
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
-from reportlab.lib.styles import getSampleStyleSheet
-from tkinter import filedialog
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus.tables import TableStyle
-from tkinter import filedialog
-from db import conectar  # Importamos el archivo db.pys
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+from db import conectar
+import sqlite3
 
-class EgresoApp(Tk):
-    def __init__(self, parent):
+class MyMainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.title('Egreso')
-        self.parent = parent  # Almacenar una referencia al objeto PresupuestoApp
-        # Resto del código...
-        
-        self.conn, self.c = conectar()
 
-        def render_clientes():
-            rows = self.c.execute("SELECT * FROM clientes").fetchall()
-            self.tree.delete(*self.tree.get_children())
-            for row in rows:
-                self.tree.insert('', END, row[0], values=(row[1], row[2]))
+        # Configurar la ventana principal
+        self.setObjectName("MainWindow")
+        self.resize(667, 264)
 
-        def insertar(clientes):
-            self.c.execute("""
-                    INSERT INTO clientes (nombre, telefono) VALUES (?, ?)
-                    """, (clientes['nombre'], clientes['telefono']))
-            self.conn.commit()
-            self.parent.actualizar_nombres_clientes()
-            render_clientes()
+        # Crear el widget central
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+        self.setCentralWidget(self.centralwidget)
 
-        def nuevo_cliente():
-            def guardar():
-                # Validar para no cargar datos vacios
-                if not nombre.get():
-                    messagebox.showerror('Error', 'El nombre es obligatorio')
-                    return
-                if not telefono.get():
-                    messagebox.showerror('Error', 'El telefono es obligatorio')
-                    return
+        # Crear widgets
+        self.labeltitulo = QtWidgets.QLabel(self.centralwidget)
+        self.labeltitulo.setGeometry(QtCore.QRect(250, 0, 211, 41))
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labeltitulo.setFont(font)
+        self.labeltitulo.setObjectName("labeltitulo")
 
-                clientes = {
-                    'nombre': nombre.get(),
-                    'telefono': telefono.get()
-                }
+        self.lineEditFecha = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditFecha.setGeometry(QtCore.QRect(70, 60, 113, 20))
+        self.lineEditFecha.setObjectName("lineEditFecha")
 
-                insertar(clientes)
-                top.destroy()
+        self.lineEditDetalle = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditDetalle.setGeometry(QtCore.QRect(80, 90, 571, 61))
+        self.lineEditDetalle.setObjectName("lineEditDetalle")
 
-            # Definimos una subventana
-            top = Toplevel()
-            top.title('Nuevo cliente')
+        self.lineEditMonto = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEditMonto.setGeometry(QtCore.QRect(70, 160, 113, 21))
+        self.lineEditMonto.setObjectName("lineEditMonto")
 
-            lnombre = Label(top, text='Nombre')
-            nombre = Entry(top, width=40)
-            lnombre.grid(row=0, column=0)
-            nombre.grid(row=0, column=1)
+        self.labelFecha = QtWidgets.QLabel(self.centralwidget)
+        self.labelFecha.setGeometry(QtCore.QRect(10, 60, 61, 16))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelFecha.setFont(font)
+        self.labelFecha.setObjectName("labelFecha")
 
-            ltelefono = Label(top, text='Telefono')
-            telefono = Entry(top, width=40)
-            ltelefono.grid(row=1, column=0)
-            telefono.grid(row=1, column=1)
+        self.labelDetalle = QtWidgets.QLabel(self.centralwidget)
+        self.labelDetalle.setGeometry(QtCore.QRect(10, 100, 71, 41))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelDetalle.setFont(font)
+        self.labelDetalle.setObjectName("labelDetalle")
 
-            guardar = Button(top, text='Guardar', command=guardar)
-            guardar.grid(row=3, column=1)
+        self.labelMonto = QtWidgets.QLabel(self.centralwidget)
+        self.labelMonto.setGeometry(QtCore.QRect(10, 160, 81, 20))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelMonto.setFont(font)
+        self.labelMonto.setObjectName("labelMonto")
 
-            # Creamos el main loop para nuestra segunda ventana
-            top.mainloop()
+        self.ButtonRegis = QtWidgets.QPushButton(self.centralwidget)
+        self.ButtonRegis.setGeometry(QtCore.QRect(70, 200, 75, 23))
+        self.ButtonRegis.setObjectName("ButtonRegis")
+        self.ButtonRegis.clicked.connect(self.insertar_datos)
 
-        def eliminar_cliente():
-            id = self.tree.selection()[0]
-            cliente = self.c.execute("SELECT * FROM clientes where id = ?", (id,)).fetchone()
-            respuesta = messagebox.askokcancel('Seguro', 'Estas seguro de querer eliminar el cliente ' + cliente[1] + '?')
-            if respuesta:
-                self.c.execute("DELETE FROM clientes WHERE id = ?", (id,))
-                self.conn.commit()
-                render_clientes()
-            else:
-                pass
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(200, 200, 75, 23))
+        self.pushButton_2.setObjectName("pushButton_2")
 
-        btn = Button(self, text='Nuevo cliente', command=nuevo_cliente)
-        btn.grid(column=0, row=0)
+        # Configurar menú y barra de estado
+        self.menubar = self.menuBar()
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 667, 21))
+        self.menubar.setObjectName("menubar")
 
-        btn_eliminar = Button(self, text='Eliminar cliente', command=eliminar_cliente)
-        btn_eliminar.grid(column=1, row=0)
+        self.statusbar = self.statusBar()
+        self.statusbar.setObjectName("statusbar")
 
-        self.tree = ttk.Treeview(self)
-        self.tree['columns'] = ('Nombre', 'Telefono')
-        self.tree.column('#0', width=0, stretch=NO)
-        self.tree.column('Nombre')
-        self.tree.column('Telefono')
+        # Llamar a la función para configurar traducciones
+        self.retranslateUi()
+    def insertar_datos(self):
+        fecha = self.lineEditFecha.text()
+        detalle = self.lineEditDetalle.text()
+        monto = self.lineEditMonto.text()
 
-        self.tree.heading('Nombre', text='Nombre')
-        self.tree.heading('Telefono', text='Telefono')
-        self.tree.grid(column=0, row=1, columnspan=4)
+        if fecha and detalle and monto:
+            try:
+                conexion, cursor = conectar()  # Utiliza la función conectar
 
-        render_clientes()
+                # Sentencia SQL para insertar datos en la tabla "egreso"
+                cursor.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha, detalle, monto))
 
-if __name__ == '__main__':
-    app = EgresoApp()
-    app.mainloop()
+                conexion.commit()  # Confirmar la transacción
+                conexion.close()   # Cerrar la conexión
+
+                # Limpia los campos después de la inserción
+                self.lineEditFecha.clear()
+                self.lineEditDetalle.clear()
+                self.lineEditMonto.clear()
+                # Mostrar un mensaje de confirmación
+                QtWidgets.QMessageBox.information(self, "Éxito", "Los datos han sido registrados correctamente.")
+            except sqlite3.Error as error:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Error al insertar en la base de datos: {error}")
+        else:
+            QtWidgets.QMessageBox.warning(self, "Advertencia", "Todos los campos son obligatorios.")
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.labeltitulo.setText(_translate("MainWindow", "Registre Egreso"))
+        self.labelFecha.setText(_translate("MainWindow", "Fecha:"))
+        self.labelDetalle.setText(_translate("MainWindow", "Detalle:"))
+        self.labelMonto.setText(_translate("MainWindow", "Monto:"))
+        self.ButtonRegis.setText(_translate("MainWindow", "Registrar"))
+        self.pushButton_2.setText(_translate("MainWindow", "Editar"))
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = MyMainWindow()
+    MainWindow.show()
+    sys.exit(app.exec_())
