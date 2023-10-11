@@ -28,10 +28,6 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.labeltitulo.setFont(font)
         self.labeltitulo.setObjectName("labeltitulo")
 
-        self.lineEditFecha = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEditFecha.setGeometry(QtCore.QRect(70, 60, 113, 20))
-        self.lineEditFecha.setObjectName("lineEditFecha")
-
         self.lineEditDetalle = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEditDetalle.setGeometry(QtCore.QRect(80, 90, 571, 61))
         self.lineEditDetalle.setObjectName("lineEditDetalle")
@@ -39,15 +35,6 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.lineEditMonto = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEditMonto.setGeometry(QtCore.QRect(70, 160, 113, 21))
         self.lineEditMonto.setObjectName("lineEditMonto")
-
-        self.labelFecha = QtWidgets.QLabel(self.centralwidget)
-        self.labelFecha.setGeometry(QtCore.QRect(10, 60, 61, 16))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        font.setBold(True)
-        font.setWeight(75)
-        self.labelFecha.setFont(font)
-        self.labelFecha.setObjectName("labelFecha")
 
         self.labelDetalle = QtWidgets.QLabel(self.centralwidget)
         self.labelDetalle.setGeometry(QtCore.QRect(10, 100, 71, 41))
@@ -86,8 +73,11 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
         # Llamar a la función para configurar traducciones
         self.retranslateUi()
+        
     def insertar_datos(self):
-        fecha = self.lineEditFecha.text()  # Obtenemos la fecha en formato de texto
+        # Obtiene la fecha actual
+        fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         detalle = self.lineEditDetalle.text()
         monto_egreso = float(self.lineEditMonto.text())
 
@@ -112,7 +102,6 @@ class MyMainWindow(QtWidgets.QMainWindow):
                     conexion.close()   # Cerrar la conexión
 
                 # Limpia los campos después de la inserción
-                    self.lineEditFecha.clear()
                     self.lineEditDetalle.clear()
                     self.lineEditMonto.clear()
                 # Mostrar un mensaje de confirmación
@@ -128,7 +117,6 @@ class MyMainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.labeltitulo.setText(_translate("MainWindow", "Registre Egreso"))
-        self.labelFecha.setText(_translate("MainWindow", "Fecha:"))
         self.labelDetalle.setText(_translate("MainWindow", "Detalle:"))
         self.labelMonto.setText(_translate("MainWindow", "Monto:"))
         self.ButtonRegis.setText(_translate("MainWindow", "Registrar"))

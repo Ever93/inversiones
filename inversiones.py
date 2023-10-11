@@ -137,7 +137,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.modelEgreso = QtGui.QStandardItemModel()
         self.treeViewEgreso.setModel(self.modelEgreso)
         self.modelEgreso.setHorizontalHeaderLabels(["Fecha", "Detalle", "Monto"])
-        self.treeViewEgreso.setColumnWidth(1, 200)
         self.cargar_datos_egreso()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.actualizar_egresos_periodicamente)
@@ -261,7 +260,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.modelEgreso.clear()  # Borra los datos actuales en el modelo
         # Configura las etiquetas de las columnas después de borrar los datos
         self.modelEgreso.setHorizontalHeaderLabels(["Fecha", "Detalle", "Monto"])
-        
+        self.treeViewEgreso.setColumnWidth(1, 190)
+        self.treeViewEgreso.setColumnWidth(0, 135)
         self.cargar_datos_egreso()  # Vuelve a cargar los datos desde la base de datos
 
         # Asegúrate de que los datos se muestren en la vista
