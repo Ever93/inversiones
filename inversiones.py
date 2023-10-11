@@ -214,6 +214,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if resultado_egreso:
                 egreso_id, monto_egreso = resultado_egreso
+                # Obtén la fecha actual
+                fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 # Elimina el último registro de la tabla "egreso"
                 cursor.execute("DELETE FROM egreso WHERE id = ?", (egreso_id,))
                 conn.commit()
@@ -226,7 +228,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 nuevo_saldo = saldo_actual + monto_egreso
 
                 # Actualiza el saldo en la tabla "saldo"
-                cursor.execute("UPDATE saldo SET monto = ? WHERE id = 1", (nuevo_saldo,))
+                cursor.execute("UPDATE saldo SET monto = ?, fecha = ? WHERE id = 1", (nuevo_saldo, fecha_actual))
                 conn.commit()
 
                 # Actualiza la interfaz de usuario con el nuevo saldo

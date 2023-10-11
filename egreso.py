@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from db import conectar
 import sqlite3
 from PyQt5.QtCore import QDate
+import datetime
 
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
