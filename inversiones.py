@@ -11,6 +11,8 @@ from PyQt5.QtCore import QTimer
 import threading
 import time
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import QMessageBox
+import datetime
 
 class MontoInputDialog(QDialog):
     def __init__(self):
@@ -156,6 +158,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.deletEgreso = QtWidgets.QPushButton(self.centralwidget)
         self.deletEgreso.setGeometry(QtCore.QRect(750, 600, 75, 23))
         self.deletEgreso.setObjectName("deletEgreso")
+        self.deletEgreso.clicked.connect(self.confirmar_eliminar_ultimo_egreso)
+        
         self.deletIngreso = QtWidgets.QPushButton(self.centralwidget)
         self.deletIngreso.setGeometry(QtCore.QRect(330, 600, 75, 23))
         self.deletIngreso.setObjectName("deletIngreso")
@@ -185,7 +189,55 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.actualizar_saldo_periodicamente)
         self.timer.start(1000)  # Actualiza cada 10 segundos
+    
+    def confirmar_eliminar_ultimo_egreso(self):
+        confirmacion = QMessageBox()
+        confirmacion.setWindowTitle('Confirmación')
+        confirmacion.setText('¿Estás seguro de que deseas eliminar el último registro de egreso?')
+        confirmacion.setIcon(QMessageBox.Question)
+        # Personaliza los botones
+        boton_si = confirmacion.addButton('Si', QMessageBox.YesRole)
+        boton_no = confirmacion.addButton('No', QMessageBox.NoRole)
+        confirmacion.exec_()
+        if confirmacion.clickedButton() == boton_si:
+            self.eliminar_ultimo_egreso()
+        else:
+            # El usuario canceló la acción
+            pass
         
+    def eliminar_ultimo_egreso(self):
+        try:
+            conn, cursor = conectar()
+            # Obtén el último registro de la tabla "egreso"
+            cursor.execute("SELECT id, monto FROM egreso ORDER BY id DESC LIMIT 1")
+            resultado_egreso = cursor.fetchone()
+
+            if resultado_egreso:
+                egreso_id, monto_egreso = resultado_egreso
+                # Elimina el último registro de la tabla "egreso"
+                cursor.execute("DELETE FROM egreso WHERE id = ?", (egreso_id,))
+                conn.commit()
+
+                # Obtén el saldo actual de la tabla "saldo"
+                cursor.execute("SELECT monto FROM saldo WHERE id = 1")
+                saldo_actual = cursor.fetchone()[0]
+
+                # Calcula el nuevo saldo sumando el monto del egreso eliminado
+                nuevo_saldo = saldo_actual + monto_egreso
+
+                # Actualiza el saldo en la tabla "saldo"
+                cursor.execute("UPDATE saldo SET monto = ? WHERE id = 1", (nuevo_saldo,))
+                conn.commit()
+
+                # Actualiza la interfaz de usuario con el nuevo saldo
+                self.textSaldo.setPlainText(str(nuevo_saldo))
+            else:
+                QtWidgets.QMessageBox.warning(self, "Advertencia", "No hay registros de egreso para eliminar.")
+
+            conn.close()
+        except sqlite3.Error as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error al actualizar la base de datos: {e}")
+
     def cargar_datos_egreso(self):
         try:
             conexion, cursor = conectar()
