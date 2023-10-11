@@ -134,27 +134,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Crear el modelo de datos para el QTreeView
         self.modelEgreso = QtGui.QStandardItemModel()
         self.treeViewEgreso.setModel(self.modelEgreso)
-        # Agregar encabezados de columna
         self.modelEgreso.setHorizontalHeaderLabels(["Fecha", "Detalle", "Monto"])
         self.treeViewEgreso.setColumnWidth(1, 200)
         self.cargar_datos_egreso()
-    def cargar_datos_egreso(self):
-        try:
-            conexion, cursor = conectar()
-            cursor.execute("SELECT fecha, detalle, monto FROM egreso")
-            data = cursor.fetchall()
-
-            for row in data:
-                fecha, detalle, monto = row
-                item_fecha = QtGui.QStandardItem(fecha)
-                item_detalle = QtGui.QStandardItem(detalle)
-                item_monto = QtGui.QStandardItem(str(monto))
-                self.modelEgreso.appendRow([item_fecha, item_detalle, item_monto])
-
-            conexion.close()
-        except sqlite3.Error as error:
-            QtWidgets.QMessageBox.critical(self, "Error", f"Error al cargar datos desde la base de datos: {error}")
-
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.actualizar_egresos_periodicamente)
+        self.timer.start(1000)#Actualiza cada 1 segundo
+        
         self.textCI = QtWidgets.QTextBrowser(self.centralwidget)
         self.textCI.setGeometry(QtCore.QRect(140, 50, 211, 31))
         self.textCI.setObjectName("textCI")
@@ -199,6 +185,32 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.actualizar_saldo_periodicamente)
         self.timer.start(1000)  # Actualiza cada 10 segundos
+        
+    def cargar_datos_egreso(self):
+        try:
+            conexion, cursor = conectar()
+            cursor.execute("SELECT fecha, detalle, monto FROM egreso")
+            data = cursor.fetchall()
+
+            for row in data:
+                fecha, detalle, monto = row
+                item_fecha = QtGui.QStandardItem(fecha)
+                item_detalle = QtGui.QStandardItem(detalle)
+                item_monto = QtGui.QStandardItem(str(monto))
+                self.modelEgreso.appendRow([item_fecha, item_detalle, item_monto])
+
+            conexion.close()
+        except sqlite3.Error as error:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error al cargar datos desde la base de datos: {error}")
+
+    def actualizar_egresos_periodicamente(self):
+        self.modelEgreso.clear()  # Borra los datos actuales en el modelo
+
+        self.cargar_datos_egreso()  # Vuelve a cargar los datos desde la base de datos
+
+        # Asegúrate de que los datos se muestren en la vista
+        self.treeViewEgreso.setModel(self.modelEgreso)
+        
     def abrir_egreso(self):
         if self.egreso_window is None:
             self.egreso_window = MyMainWindow()
