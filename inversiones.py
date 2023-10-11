@@ -205,7 +205,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def actualizar_egresos_periodicamente(self):
         self.modelEgreso.clear()  # Borra los datos actuales en el modelo
-
+        # Configura las etiquetas de las columnas después de borrar los datos
+        self.modelEgreso.setHorizontalHeaderLabels(["Fecha", "Detalle", "Monto"])
+        
         self.cargar_datos_egreso()  # Vuelve a cargar los datos desde la base de datos
 
         # Asegúrate de que los datos se muestren en la vista
