@@ -137,6 +137,24 @@ class MainWindow(QtWidgets.QMainWindow):
         # Agregar encabezados de columna
         self.modelEgreso.setHorizontalHeaderLabels(["Fecha", "Detalle", "Monto"])
         self.treeViewEgreso.setColumnWidth(1, 200)
+        self.cargar_datos_egreso()
+    def cargar_datos_egreso(self):
+        try:
+            conexion, cursor = conectar()
+            cursor.execute("SELECT fecha, detalle, monto FROM egreso")
+            data = cursor.fetchall()
+
+            for row in data:
+                fecha, detalle, monto = row
+                item_fecha = QtGui.QStandardItem(fecha)
+                item_detalle = QtGui.QStandardItem(detalle)
+                item_monto = QtGui.QStandardItem(str(monto))
+                self.modelEgreso.appendRow([item_fecha, item_detalle, item_monto])
+
+            conexion.close()
+        except sqlite3.Error as error:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error al cargar datos desde la base de datos: {error}")
+
         self.textCI = QtWidgets.QTextBrowser(self.centralwidget)
         self.textCI.setGeometry(QtCore.QRect(140, 50, 211, 31))
         self.textCI.setObjectName("textCI")
