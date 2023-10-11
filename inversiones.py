@@ -7,6 +7,10 @@ from db import conectar
 import sqlite3
 from capitalinicial import Ui_MainWindow as Ui_CapitalInicial, CapitalInicialWindow
 from egreso import MyMainWindow
+from PyQt5.QtCore import QTimer
+import threading
+import time
+from PyQt5.QtCore import QObject, pyqtSignal
 
 class MontoInputDialog(QDialog):
     def __init__(self):
@@ -43,6 +47,7 @@ class CapitalInicialWindow(QtWidgets.QMainWindow):
         self.close()
         
 class MainWindow(QtWidgets.QMainWindow):
+    saldo_actualizado = QtCore.pyqtSignal(float, str)
     def __init__(self):
         super().__init__()
         self.capital_inicial_window = None  # Para mantener un seguimiento de la ventana de capital inicial
@@ -172,6 +177,10 @@ class MainWindow(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
         # Llamar al método para cargar el saldo desde la base de datos
         self.cargar_saldo_desde_db()
+        # Crear y empezar un hilo para actualizar el saldo periódicamente
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.actualizar_saldo_periodicamente)
+        self.timer.start(10000)  # Actualiza cada 10 segundos
     def abrir_egreso(self):
         if self.egreso_window is None:
             self.egreso_window = MyMainWindow()
@@ -217,6 +226,24 @@ class MainWindow(QtWidgets.QMainWindow):
             conn.close()
         except sqlite3.Error as e:
             print("Error al acceder a la base de datos:", e)
+    def actualizar_saldo_periodicamente(self):
+        try:
+            conn, cursor = conectar()
+            cursor.execute("SELECT monto, fecha FROM saldo ORDER BY id DESC LIMIT 1")
+            resultado = cursor.fetchone()
+            if resultado:
+                monto, fecha = resultado
+                self.textSaldo.setPlainText(str(monto))
+                self.textFechaSaldo.setPlainText(str(fecha))
+                font = QtGui.QFont()
+                font.setPointSize(12)
+                self.textSaldo.setFont(font)
+                self.textFechaSaldo.setFont(font)
+                self.saldo_actualizado.emit(monto, fecha)
+            conn.close()
+        except sqlite3.Error as e:
+            print("Error al acceder a la base de datos:", e)
+
     
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -238,4 +265,5 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     window.show()
+
     sys.exit(app.exec_())
