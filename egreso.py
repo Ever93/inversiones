@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from db import conectar
 import sqlite3
+from PyQt5.QtCore import QDate
 
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -85,7 +86,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         # Llamar a la función para configurar traducciones
         self.retranslateUi()
     def insertar_datos(self):
-        fecha = self.lineEditFecha.text()
+        fecha = self.lineEditFecha.text()  # Obtenemos la fecha en formato de texto
         detalle = self.lineEditDetalle.text()
         monto_egreso = float(self.lineEditMonto.text())
 
@@ -96,22 +97,27 @@ class MyMainWindow(QtWidgets.QMainWindow):
                 # Sentencia SQL para insertar datos en la tabla "egreso"
                 cursor.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha, detalle, monto_egreso))
                 # Obtener el saldo actual desde la tabla "saldo"
-                cursor.execute("SELECT monto FROM saldo ORDER BY id DESC LIMIT 1")
-                saldo_actual = cursor.fetchone()[0]
+                cursor.execute("SELECT monto FROM saldo WHERE id=1")
+                saldo_actual = cursor.fetchone()
+                if saldo_actual:
+                    saldo_monto = saldo_actual[0]
                 # Calcular el nuevo saldo restando el monto del egreso
-                nuevo_saldo = saldo_actual - monto_egreso
+                    nuevo_saldo = saldo_monto - monto_egreso
                 # Actualizar el saldo en la tabla "saldo"
-                cursor.execute("INSERT INTO saldo (fecha, monto) VALUES (?, ?)", (fecha, nuevo_saldo))
-
-                conexion.commit()  # Confirmar la transacción
-                conexion.close()   # Cerrar la conexión
+                    
+                    cursor.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha, nuevo_saldo))
+                
+                    conexion.commit()  # Confirmar la transacción
+                    conexion.close()   # Cerrar la conexión
 
                 # Limpia los campos después de la inserción
-                self.lineEditFecha.clear()
-                self.lineEditDetalle.clear()
-                self.lineEditMonto.clear()
+                    self.lineEditFecha.clear()
+                    self.lineEditDetalle.clear()
+                    self.lineEditMonto.clear()
                 # Mostrar un mensaje de confirmación
-                QtWidgets.QMessageBox.information(self, "Éxito", "Los datos han sido registrados correctamente.")
+                    QtWidgets.QMessageBox.information(self, "Éxito", "Los datos han sido registrados correctamente.")
+                else:
+                    QtWidgets.QMessageBox.warning(self, "Advertencia", "No se encontró un registro de saldo.")
             except sqlite3.Error as error:
                 QtWidgets.QMessageBox.critical(self, "Error", f"Error al insertar en la base de datos: {error}")
         else:

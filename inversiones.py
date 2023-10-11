@@ -180,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Crear y empezar un hilo para actualizar el saldo periódicamente
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.actualizar_saldo_periodicamente)
-        self.timer.start(10000)  # Actualiza cada 10 segundos
+        self.timer.start(1000)  # Actualiza cada 10 segundos
     def abrir_egreso(self):
         if self.egreso_window is None:
             self.egreso_window = MyMainWindow()
@@ -229,17 +229,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def actualizar_saldo_periodicamente(self):
         try:
             conn, cursor = conectar()
-            cursor.execute("SELECT monto, fecha FROM saldo ORDER BY id DESC LIMIT 1")
+            cursor.execute("SELECT monto, fecha FROM saldo WHERE id = 1")
             resultado = cursor.fetchone()
+
             if resultado:
-                monto, fecha = resultado
-                self.textSaldo.setPlainText(str(monto))
-                self.textFechaSaldo.setPlainText(str(fecha))
+                saldo_actual, fecha_actual = resultado
+
+            # Actualiza la interfaz de usuario con el saldo
+                self.textSaldo.setPlainText(str(saldo_actual))
+                self.textFechaSaldo.setPlainText(fecha_actual)
                 font = QtGui.QFont()
                 font.setPointSize(12)
                 self.textSaldo.setFont(font)
-                self.textFechaSaldo.setFont(font)
-                self.saldo_actualizado.emit(monto, fecha)
+
             conn.close()
         except sqlite3.Error as e:
             print("Error al acceder a la base de datos:", e)
