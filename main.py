@@ -4,6 +4,7 @@ import db
 import datetime
 from tkinter import *
 from tkinter import messagebox, ttk, filedialog
+import tkinter.messagebox
 
 def obtener_capital_inicial():
     conn, c = conectar()
@@ -48,13 +49,13 @@ class InversionApp:
         self.ButtonIngreso = tk.Button(self.root, text='''Ingreso''', background='#d9d9d9', compound='left', pady=0, command=self.ingreso_clicked)
         self.ButtonIngreso.place(relx=0.74, rely=0.4, height=24, width=47)
 
-        self.ButtonDeleteEgreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''')
+        self.ButtonDeleteEgreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''', command=self.eliminar_ultimo_egreso)
         self.ButtonDeleteEgreso.place(relx=0.44, rely=0.933, height=24, width=47)
 
         self.ButtonCI = tk.Button(self.root, text='Cargar', background="#d9d9d9", compound='left', pady=0, command=self.capital_clicked)
         self.ButtonCI.place(relx=0.13, rely=0.233, height=24, width=47)
         
-        self.ButtonDeleteIngreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''')
+        self.ButtonDeleteIngreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''', command=self.eliminar_ultimo_ingreso)
         self.ButtonDeleteIngreso.place(relx=0.94, rely=0.933, height=24, width=47)
         
         self.ButtonExport = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Exportar''')
@@ -206,6 +207,39 @@ class InversionApp:
             conn.close()
             messagebox.showinfo("Éxito", "Egreso agregado correctamente")
 
+    def eliminar_ultimo_egreso(self):
+        conn, c = db.conectar()
+        try:
+        # Obtener el último registro de egreso
+            c.execute("SELECT id, monto FROM egreso ORDER BY id DESC LIMIT 1")
+            ultimo_egreso = c.fetchone()
+        
+            if ultimo_egreso:
+                egreso_id, egreso_monto = ultimo_egreso
+                # Mostrar un cuadro de diálogo de confirmación
+                respuesta = tkinter.messagebox.askquestion("Eliminar Egreso", f"¿Seguro que desea eliminar el último egreso de {egreso_monto}?", icon='warning')
+                if respuesta == 'yes':
+            # Eliminar el último registro de egreso
+                    c.execute("DELETE FROM egreso WHERE id = ?", (egreso_id,))
+                    conn.commit()
+            
+            # Obtener el saldo actual
+                    c.execute("SELECT monto FROM saldo WHERE id = 1")
+                    saldo_actual = c.fetchone()[0]
+            
+            # Actualizar el saldo sumando el monto del egreso eliminado
+                    nuevo_saldo = saldo_actual + egreso_monto
+                    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
+                    conn.commit()
+            
+                    self.render_egreso()  # Actualizar la vista de Treeview con los nuevos datos
+                    self.render_monto_saldo()
+        except sqlite3.Error as e:
+            print("Error al eliminar el egreso:", e)
+        finally:
+            conn.close()
+
     def ingreso_clicked(self):
         top = tk.Toplevel()
         top.title('Cargar Ingreso')
@@ -262,6 +296,39 @@ class InversionApp:
         finally:
             conn.close()
             messagebox.showinfo("Éxito", "Egreso agregado correctamente")
+    
+    def eliminar_ultimo_ingreso(self):
+        conn, c = db.conectar()
+        try:
+        # Obtener el último registro de egreso
+            c.execute("SELECT id, monto FROM ingreso ORDER BY id DESC LIMIT 1")
+            ultimo_ingreso = c.fetchone()
+        
+            if ultimo_ingreso:
+                ingreso_id, ingreso_monto = ultimo_ingreso
+                # Mostrar un cuadro de diálogo de confirmación
+                respuesta = tkinter.messagebox.askquestion("Eliminar Ingreso", f"¿Seguro que desea eliminar el último ingreso de {ingreso_monto}?", icon='warning')
+                if respuesta == 'yes':
+            # Eliminar el último registro de egreso
+                    c.execute("DELETE FROM ingreso WHERE id = ?", (ingreso_id,))
+                    conn.commit()
+            
+            # Obtener el saldo actual
+                    c.execute("SELECT monto FROM saldo WHERE id = 1")
+                    saldo_actual = c.fetchone()[0]
+            
+            # Actualizar el saldo sumando el monto del egreso eliminado
+                    nuevo_saldo = saldo_actual - ingreso_monto
+                    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
+                    conn.commit()
+            
+                    self.render_ingreso()  # Actualizar la vista de Treeview con los nuevos datos
+                    self.render_monto_saldo()
+        except sqlite3.Error as e:
+            print("Error al eliminar el ingreso:", e)
+        finally:
+            conn.close()
             
     def render_monto_capital(self):
     # Obtener el monto directamente del registro con id=1
