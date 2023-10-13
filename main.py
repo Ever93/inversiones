@@ -5,6 +5,8 @@ import datetime
 from tkinter import *
 from tkinter import messagebox, ttk, filedialog
 import tkinter.messagebox
+import sys
+from export_excel import exportar_excel
 
 def obtener_capital_inicial():
     conn, c = conectar()
@@ -58,7 +60,7 @@ class InversionApp:
         self.ButtonDeleteIngreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''', command=self.eliminar_ultimo_ingreso)
         self.ButtonDeleteIngreso.place(relx=0.94, rely=0.933, height=24, width=47)
         
-        self.ButtonExport = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Exportar''')
+        self.ButtonExport = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Exportar''', command=self.exportar_excel)
         self.ButtonExport.place(relx=0.01, rely=0.933, height=24, width=47)
         
         #Label de contenido de solo lectura
@@ -376,6 +378,10 @@ class InversionApp:
         self.treeviewIngreso.delete(*self.treeviewIngreso.get_children())
         for row in rows:
             self.treeviewIngreso.insert('', END, row[0], values=(row[1], row[2], row[3]))
+
+    def exportar_excel(self):
+        nombre_archivo = 'datos_inversiones.xlsx'
+        exportar_excel(nombre_archivo)
 
     
 root = Tk()
