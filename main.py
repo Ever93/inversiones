@@ -8,12 +8,6 @@ import tkinter.messagebox
 import sys
 from export_excel import exportar_excel
 
-def obtener_capital_inicial():
-    conn, c = conectar()
-    c.execute("SELECT fecha, monto FROM capitalinicial")
-    datos = c.fetchall()
-    conn.close()
-    return datos
 
 class InversionApp:
     def __init__(self, root):
@@ -120,7 +114,6 @@ class InversionApp:
         
     def guardar_capital(self, monto):
         fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
         conn, c = db.conectar()
         
         try:
@@ -383,7 +376,6 @@ class InversionApp:
         nombre_archivo = 'datos_inversiones.xlsx'
         exportar_excel(nombre_archivo)
 
-    
 root = Tk()
 app = InversionApp(root)
 root.mainloop()
