@@ -45,7 +45,7 @@ class InversionApp:
         self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0, command=self.egreso_clicked)
         self.ButtonEgreso.place(relx=0.21, rely=0.4, height=24, width=47)
         
-        self.ButtonIngreso = tk.Button(self.root, text='''Ingreso''', background='#d9d9d9', compound='left', pady=0)
+        self.ButtonIngreso = tk.Button(self.root, text='''Ingreso''', background='#d9d9d9', compound='left', pady=0, command=self.ingreso_clicked)
         self.ButtonIngreso.place(relx=0.74, rely=0.4, height=24, width=47)
 
         self.ButtonDeleteEgreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''')
@@ -170,16 +170,99 @@ class InversionApp:
         
         entry_monto.focus_set()  # Establecer el foco en el campo de entrada
         def on_ok():
-            self.guardar_egreso(entry_monto.get())
-            top.destroy()  # Cerrar la ventana modal
+            fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
+            monto = entry_monto.get()  # Obtener el monto ingresado
+            self.guardar_egreso(fecha_actual, detalle, monto)
+            top.destroy()  # Cierra la ventana modal
 
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
         btn_ok.grid(row=3, column=1, padx=5, pady=5)
         top.mainloop()
     
-    def guardar_egreso(self):
-        pass
+    def guardar_egreso(self, fecha, detalle, monto):
+        conn, c = db.conectar()
+        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+        try:
+            monto = float(monto)
+            c.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha or fecha_actual, detalle, monto))
+            conn.commit()
+            # Restar el monto del egreso del saldo actual
+            c.execute("SELECT monto FROM saldo WHERE id = 1")
+            saldo_actual = c.fetchone()[0]
+            nuevo_saldo = saldo_actual - monto
+        
+        # Actualizar el saldo en la base de datos
+            c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
+            conn.commit()
+            
+            self.render_egreso()  # Actualiza la vista de Treeview con los nuevos datos
+            self.render_monto_saldo()
+            
+        except sqlite3.Error as e:
+            print("Error al guardar en la base de datos:", e)
+        finally:
+            conn.close()
+            messagebox.showinfo("Éxito", "Egreso agregado correctamente")
 
+    def ingreso_clicked(self):
+        top = tk.Toplevel()
+        top.title('Cargar Ingreso')
+        top.geometry('400x200')
+        # Obtiene las dimensiones de la ventana principal
+        x = self.root.winfo_x() + (self.root.winfo_width() - 400) // 2
+        y = self.root.winfo_y() + (self.root.winfo_height() - 200) // 2
+        top.geometry(f'400x200+{x}+{y}')
+
+        lbl_monto = tk.Label(top, text='Monto:')
+        lbl_monto.grid(row=1, column=0, padx=5, pady=5)
+        entry_monto = tk.Entry(top)
+        entry_monto.grid(row=1, column=1, padx=5, pady=5)
+        
+        lbl_detalle = tk.Label(top, text='Detalle:')
+        lbl_detalle.grid(row=2, column=0, padx=5, pady=5)
+        entry_detalle = tk.Text(top, wrap=tk.WORD, width=40, height=4)
+        entry_detalle.grid(row=2, column=1, padx=5, pady=5)
+        
+        entry_monto.focus_set()  # Establecer el foco en el campo de entrada
+        def on_ok():
+            fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
+            monto = entry_monto.get()  # Obtener el monto ingresado
+            self.guardar_ingreso(fecha_actual, detalle, monto)
+            top.destroy()  # Cierra la ventana modal
+
+        btn_ok = tk.Button(top, text='Ok', command=on_ok)
+        btn_ok.grid(row=3, column=1, padx=5, pady=5)
+        top.mainloop()
+
+    def guardar_ingreso(self, fecha, detalle, monto):
+        conn, c = db.conectar()
+        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+        try:
+            monto = float(monto)
+            c.execute("INSERT INTO ingreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha or fecha_actual, detalle, monto))
+            conn.commit()
+            # sumar el monto de ingreso
+            c.execute("SELECT monto FROM saldo WHERE id = 1")
+            saldo_actual = c.fetchone()[0]
+            nuevo_saldo = saldo_actual + monto
+        
+        # Actualizar el saldo en la base de datos
+            c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
+            conn.commit()
+            
+            self.render_ingreso()  # Actualiza la vista de Treeview con los nuevos datos
+            self.render_monto_saldo()
+            
+        except sqlite3.Error as e:
+            print("Error al guardar en la base de datos:", e)
+        finally:
+            conn.close()
+            messagebox.showinfo("Éxito", "Egreso agregado correctamente")
+            
     def render_monto_capital(self):
     # Obtener el monto directamente del registro con id=1
         conn, c = db.conectar()
