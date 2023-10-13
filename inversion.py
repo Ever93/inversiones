@@ -3,11 +3,19 @@ import tkinter.ttk as ttk
 from tkinter.constants import *
 import estilos  # Importa el módulo de estilos que has creado
 from autoscroll import AutoScroll, ScrolledTreeView, _bound_to_mousewheel, _unbound_to_mousewheel, _on_mousewheel, _on_shiftmouse
+from tkinter import Toplevel, Label, Entry, Button
+import db
+import datetime
+import sqlite3
+from tkinter import messagebox
+
+
 root = tk.Tk()
 estilos._style_code()
 
 class Toplevel1:
     def __init__(self, top=None):
+        self.ventana_modal = None 
         top.geometry("1000x600+183+56")
         top.minsize(120, 1)
         top.maxsize(1370, 749)
@@ -44,7 +52,7 @@ class Toplevel1:
         self.ButtonDeleteEgreso = tk.Button(self.top, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''')
         self.ButtonDeleteEgreso.place(relx=0.44, rely=0.933, height=24, width=47)
 
-        self.ButtonCI = tk.Button(self.top, text='Cargar', background="#d9d9d9", compound='left', pady=0)
+        self.ButtonCI = tk.Button(self.top, text='Cargar', background="#d9d9d9", compound='left', pady=0, command=self.abrir_ventana_modal)
         self.ButtonCI.place(relx=0.13, rely=0.233, height=24, width=47)
         
         self.ButtonDeleteIngreso = tk.Button(self.top, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''')
@@ -88,7 +96,83 @@ class Toplevel1:
             self.treeviewIngreso.column(col_name, width=col_width, minwidth=col_minwidth, stretch=True)        
         self.treeviewIngreso.configure(yscrollcommand=vsb.set)
         vsb.place(relx=0.945, rely=0.467, relheight=0.452)
+        
+    def abrir_ventana_modal(self):
+        # Crear una ventana modal
+        self.ventana_modal = Toplevel(self.top)
+        self.ventana_modal.title("Cargar Capital")
 
+        # Configurar la geometría para centrar la ventana modal
+        ancho_ventana = 300
+        alto_ventana = 150
+        x = (self.top.winfo_width() - ancho_ventana) // 2
+        y = (self.top.winfo_height() - alto_ventana) // 2
+        self.ventana_modal.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
+
+        # Deshabilitar la capacidad de redimensionar
+        self.ventana_modal.resizable(False, False)
+
+        # Eliminar las opciones de maximizar y minimizar
+        self.ventana_modal.attributes('-toolwindow', 1)
+
+        # Etiqueta para instrucciones
+        label_instrucciones = Label(self.ventana_modal, text="Ingrese el monto de capital:")
+        label_instrucciones.pack()
+
+        # Cuadro de texto para el monto
+        entry_monto = Entry(self.ventana_modal)
+        entry_monto.pack()
+        entry_monto.focus_set()
+
+        # Botón para confirmar
+        boton_confirmar = Button(self.ventana_modal, text="Confirmar", command=lambda: self.guardar_capital(entry_monto.get()))
+        boton_confirmar.pack()
+
+    def guardar_capital(self, monto):
+    # Obtener la fecha actual en el formato deseado (puedes ajustar el formato según tus preferencias)
+        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Conectar a la base de datos
+        conn, c = db.conectar()  # Asumiendo que db.conectar() es la función que tienes en tu archivo db.py
+
+        try:
+        # Comprobar si ya existe un registro en la tabla capitalinicial
+            c.execute("SELECT * FROM capitalinicial WHERE id = 1")
+            existing_record = c.fetchone()
+
+            if existing_record:
+            # Si el registro ya existe, actualiza el monto y la fecha
+                c.execute("UPDATE capitalinicial SET monto = ?, fecha = ? WHERE id = 1", (monto, fecha_actual))
+            else:
+            # Si el registro no existe, crea uno nuevo
+                c.execute("INSERT INTO capitalinicial (id, fecha, monto) VALUES (1, ?, ?)", (fecha_actual, monto))
+                
+            # Comprobar si ya existe un registro en la tabla saldo
+            c.execute("SELECT * FROM saldo WHERE id = 1")
+            existing_record_saldo = c.fetchone()
+
+            if existing_record_saldo:
+            # Si el registro ya existe, actualiza el monto y la fecha
+                c.execute("UPDATE saldo SET monto = ?, fecha = ? WHERE id = 1", (monto, fecha_actual))
+            else:
+            # Si el registro no existe, crea uno nuevo
+                c.execute("INSERT INTO saldo (id, fecha, monto) VALUES (1, ?, ?)", (fecha_actual, monto))
+
+
+        # Guardar los cambios en la base de datos
+            conn.commit()
+        except sqlite3.Error as e:
+            print("Error al guardar en la base de datos:", e)
+        finally:
+        # Cerrar la conexión a la base de datos
+            conn.close()
+
+    # Cierra la ventana modal
+        self.ventana_modal.destroy()
+        messagebox.showinfo("Éxito", "Datos agregados correctamente")
+
+
+    
 if __name__ == '__main__':
     _top1 = Toplevel1(root)
     root.mainloop()
