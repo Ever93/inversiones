@@ -58,16 +58,16 @@ class InversionApp:
         self.ButtonExport.place(relx=0.01, rely=0.933, height=24, width=47)
         
         #Label de contenido de solo lectura
-        self.LabelMonto = tk.Label(self.root, text='15.000.000', background="white", font="TkTextFont", relief="solid")
+        self.LabelMonto = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelMonto.place(relx=0.13, rely=0.167, relheight=0.057, relwidth=0.144)
         
-        self.LabelSaldo = tk.Label(self.root, text='15.000.000', background="white", font="TkTextFont", relief="solid")
+        self.LabelSaldo = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelSaldo.place(relx=0.13, rely=0.3, relheight=0.057, relwidth=0.144)
         
-        self.LabelFechaCapital = tk.Label(self.root, text='13-10-2023', background="white", font="TkTextFont", relief="solid")
+        self.LabelFechaCapital = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelFechaCapital.place(relx=0.41, rely=0.167, relheight=0.057, relwidth=0.194)
 
-        self.LabelFechaSaldo = tk.Label(self.root, text='13-10-2023', background="white", font="TkTextFont", relief="solid")
+        self.LabelFechaSaldo = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelFechaSaldo.place(relx=0.41, rely=0.3, relheight=0.057, relwidth=0.194)
         
         # Crear el Treeview
