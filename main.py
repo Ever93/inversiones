@@ -42,7 +42,7 @@ class InversionApp:
         self.LabelFechaSaldo.place(relx=0.36, rely=0.3, height=38, width=57)
         
         ####Botones
-        self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0)
+        self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0, command=self.egreso_clicked)
         self.ButtonEgreso.place(relx=0.21, rely=0.4, height=24, width=47)
         
         self.ButtonIngreso = tk.Button(self.root, text='''Ingreso''', background='#d9d9d9', compound='left', pady=0)
@@ -148,8 +148,38 @@ class InversionApp:
         # Cerrar la conexión a la base de datos
             conn.close()
         messagebox.showinfo("Éxito", "Datos agregados correctamente")
+
+    def egreso_clicked(self):
+        top = tk.Toplevel()
+        top.title('Cargar Egreso')
+        top.geometry('350x200')
+        # Obtiene las dimensiones de la ventana principal
+        x = self.root.winfo_x() + (self.root.winfo_width() - 350) // 2
+        y = self.root.winfo_y() + (self.root.winfo_height() - 200) // 2
+        top.geometry(f'350x200+{x}+{y}')
+
+        lbl_monto = tk.Label(top, text='Monto:')
+        lbl_monto.grid(row=1, column=0, padx=5, pady=5)
+        entry_monto = tk.Entry(top)
+        entry_monto.grid(row=1, column=1, padx=5, pady=5)
         
+        lbl_detalle = tk.Label(top, text='Detalle:')
+        lbl_detalle.grid(row=2, column=0, padx=5, pady=5)
+        entry_detalle = tk.Text(top, wrap=tk.WORD, width=40, height=4)
+        entry_detalle.grid(row=2, column=1, padx=5, pady=5)
         
+        entry_monto.focus_set()  # Establecer el foco en el campo de entrada
+        def on_ok():
+            self.guardar_egreso(entry_monto.get())
+            top.destroy()  # Cerrar la ventana modal
+
+        btn_ok = tk.Button(top, text='Ok', command=on_ok)
+        btn_ok.grid(row=3, column=1, padx=5, pady=5)
+        top.mainloop()
+    
+    def guardar_egreso(self):
+        pass
+
     def render_monto_capital(self):
     # Obtener el monto directamente del registro con id=1
         conn, c = db.conectar()
