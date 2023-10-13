@@ -20,6 +20,8 @@ class InversionApp:
         self.create_widgets()
         self.render_monto_capital()
         self.render_monto_saldo()
+        self.render_egreso()
+        self.render_ingreso()
         self.top = None
         
     def create_widgets(self):
@@ -80,6 +82,7 @@ class InversionApp:
         for col_name, col_text, col_width in column_configs:
             self.treeviewEgreso.heading(col_name, text=col_text)
             self.treeviewEgreso.column(col_name, width=col_width, stretch=True)
+        self.render_egreso()
         #Treview Ingreso
         self.treeviewIngreso = ttk.Treeview(self.root, columns=("Fecha", "Detalle", "Monto"), show="headings")
         self.treeviewIngreso.place(relx=0.51, rely=0.467, relheight=0.452, relwidth=0.480)
@@ -88,7 +91,8 @@ class InversionApp:
         for col_name, col_text, col_width in column_configs:
             self.treeviewIngreso.heading(col_name, text=col_text)
             self.treeviewIngreso.column(col_name, width=col_width, stretch=True)
-
+        self.render_ingreso()
+        
     def capital_clicked(self):
         top = tk.Toplevel()
         top.title('Cargar Capital')
@@ -176,6 +180,23 @@ class InversionApp:
         else:
             self.LabelSaldo.config(text='No disponible')  # En caso de que no haya datos en la tabla
             self.LabelFechaSaldo.config(text='')
+            
+    def render_egreso(self):
+        conn, c = db.conectar()
+        rows = c.execute("SELECT * FROM egreso").fetchall()
+        conn.close()
+        self.treeviewEgreso.delete(*self.treeviewEgreso.get_children())
+        for row in rows:
+            self.treeviewEgreso.insert('', END, row[0], values=(row[1], row[2], row[3]))
+
+    def render_ingreso(self):
+        conn, c = db.conectar()
+        rows = c.execute("SELECT * FROM ingreso").fetchall()
+        conn.close()
+        self.treeviewIngreso.delete(*self.treeviewIngreso.get_children())
+        for row in rows:
+            self.treeviewIngreso.insert('', END, row[0], values=(row[1], row[2], row[3]))
+
     
 root = Tk()
 app = InversionApp(root)
