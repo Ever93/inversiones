@@ -1,4 +1,0 @@
-pyuic5 capitalinicial.ui -o capitalinicial.py
-pyuic5 egreso.ui -o egreso.py
-pyuic5 ingreso.ui -o ingreso.py
-pyuic5 inversiones.ui -o inversiones.py
