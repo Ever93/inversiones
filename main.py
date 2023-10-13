@@ -27,16 +27,16 @@ class InversionApp:
         self.LabelTitle.place(relx=0.38, rely=0.017, height=28, width=307)
         
         self.LabelCI = tk.Label(self.root, text='''Capital:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
-        self.LabelCI.place(relx=0.037, rely=0.162, height=38, width=87)
-        
+        self.LabelCI.place(relx=0.065, rely=0.170, height=30, width=87)
+        #height altura y width ancho
         self.LabelSaldo = tk.Label(self.root, text='''Saldo:''', background='#d9d9d9', compound='left', anchor='w', font=('Arial', 12))
-        self.LabelSaldo.place(relx=0.067, rely=0.288, height=39, width=57)
+        self.LabelSaldo.place(relx=0.067, rely=0.305, height=30, width=87)
         
         self.LabelFechaCI = tk.Label(self.root, text='''Fecha:''', background='#d9d9d9', compound='left', anchor='w', font=('Arial', 12))
-        self.LabelFechaCI.place(relx=0.36, rely=0.167, height=38, width=57)
+        self.LabelFechaCI.place(relx=0.35, rely=0.170, height=30, width=87)
         
         self.LabelFechaSaldo = tk.Label(self.root, text='''Fecha:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
-        self.LabelFechaSaldo.place(relx=0.36, rely=0.3, height=38, width=57)
+        self.LabelFechaSaldo.place(relx=0.35, rely=0.305, height=30, width=87)
         
         ####Botones
         self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0, command=self.egreso_clicked)
