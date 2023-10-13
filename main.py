@@ -19,6 +19,7 @@ class InversionApp:
         self.root.title('Inversión')
         self.create_widgets()
         self.render_monto_capital()
+        self.render_monto_saldo()
         self.top = None
         
     def create_widgets(self):
@@ -136,6 +137,7 @@ class InversionApp:
             
             conn.commit()
             self.render_monto_capital()
+            self.render_monto_saldo()
         except sqlite3.Error as e:
             print("Error al guardar en la base de datos:", e)
         finally:
@@ -159,7 +161,21 @@ class InversionApp:
         else:
             self.LabelMonto.config(text='No disponible')  # En caso de que no haya datos en la tabla
             self.LabelFechaCapital.config(text='')
-
+            
+    def render_monto_saldo(self):
+        conn, c = db.conectar()
+        c.execute("SELECT fecha, monto FROM saldo WHERE id = 1")
+        data= c.fetchone()
+        conn.close()
+    
+        if data:
+            fecha, monto = data
+            formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
+            self.LabelSaldo.config(text=str(monto))
+            self.LabelFechaSaldo.config(text=formatted_date)
+        else:
+            self.LabelSaldo.config(text='No disponible')  # En caso de que no haya datos en la tabla
+            self.LabelFechaSaldo.config(text='')
     
 root = Tk()
 app = InversionApp(root)
