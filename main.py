@@ -5,6 +5,12 @@ import datetime
 from tkinter import *
 from tkinter import messagebox, ttk, filedialog
 
+def obtener_capital_inicial():
+    conn, c = conectar()
+    c.execute("SELECT fecha, monto FROM capitalinicial")
+    datos = c.fetchall()
+    conn.close()
+    return datos
 
 class InversionApp:
     def __init__(self, root):
@@ -12,7 +18,9 @@ class InversionApp:
         self.root.geometry("1000x600+183+56")
         self.root.title('Inversión')
         self.create_widgets()
-
+        self.render_monto_capital()
+        self.top = None
+        
     def create_widgets(self):
         #Etiquetas
         self.LabelTitle = tk.Label(self.root, text='''Control de Inversión''', background='#d9d9d9', compound='center',relief='solid', font=('Arial', 16))
@@ -94,8 +102,11 @@ class InversionApp:
         entry_monto = tk.Entry(top)
         entry_monto.pack()
         entry_monto.focus_set()  # Establecer el foco en el campo de entrada
-        
-        btn_ok = tk.Button(top, text='Ok', command=lambda: self.guardar_capital(entry_monto.get()))
+        def on_ok():
+            self.guardar_capital(entry_monto.get())
+            top.destroy()  # Cerrar la ventana modal
+
+        btn_ok = tk.Button(top, text='Ok', command=on_ok)
         btn_ok.pack()
         top.mainloop()
         
@@ -124,6 +135,7 @@ class InversionApp:
                 c.execute("INSERT INTO saldo (id, fecha, monto) VALUES (1, ?, ?)", (fecha_actual, monto))
             
             conn.commit()
+            self.render_monto_capital()
         except sqlite3.Error as e:
             print("Error al guardar en la base de datos:", e)
         finally:
@@ -131,6 +143,24 @@ class InversionApp:
             conn.close()
         messagebox.showinfo("Éxito", "Datos agregados correctamente")
         
+        
+    def render_monto_capital(self):
+    # Obtener el monto directamente del registro con id=1
+        conn, c = db.conectar()
+        c.execute("SELECT fecha, monto FROM capitalinicial WHERE id = 1")
+        data= c.fetchone()
+        conn.close()
+    
+        if data:
+            fecha, monto = data
+            formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
+            self.LabelMonto.config(text=str(monto))
+            self.LabelFechaCapital.config(text=formatted_date)
+        else:
+            self.LabelMonto.config(text='No disponible')  # En caso de que no haya datos en la tabla
+            self.LabelFechaCapital.config(text='')
+
+    
 root = Tk()
 app = InversionApp(root)
 root.mainloop()
