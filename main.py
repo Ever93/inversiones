@@ -149,11 +149,14 @@ class InversionApp:
         top = tk.Toplevel()
         top.title('Cargar Capital')
         top.geometry('250x100')
+        
         # Obtiene las dimensiones de la ventana principal
         x = self.root.winfo_x() + (self.root.winfo_width() - 250) // 2
         y = self.root.winfo_y() + (self.root.winfo_height() - 100) // 2
         top.geometry(f'250x100+{x}+{y}')
-
+        top.resizable(0, 0)  # Deshabilita maximizar y minimizar
+        top.grab_set()
+        
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.pack()
         entry_monto = create_entry_with_validation(top, validate_monto)
@@ -163,6 +166,7 @@ class InversionApp:
         entry_monto.bind("<KeyRelease>", lambda event, entry_monto=entry_monto: on_monto_change(event, entry_monto))
         def on_ok():
             self.guardar_capital(entry_monto.get())
+            top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cerrar la ventana modal
 
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
@@ -212,7 +216,9 @@ class InversionApp:
         x = self.root.winfo_x() + (self.root.winfo_width() - 400) // 2
         y = self.root.winfo_y() + (self.root.winfo_height() - 200) // 2
         top.geometry(f'400x200+{x}+{y}')
-
+        top.resizable(0, 0)  # Deshabilita maximizar y minimizar
+        top.grab_set()
+        
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.grid(row=1, column=0, padx=5, pady=5)
         entry_monto = create_entry_with_validation(top, validate_monto)
@@ -231,6 +237,7 @@ class InversionApp:
             detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
             monto = entry_monto.get()  # Obtener el monto ingresado
             self.guardar_egreso(fecha_actual, detalle, monto)
+            top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cierra la ventana modal
 
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
@@ -305,6 +312,8 @@ class InversionApp:
         x = self.root.winfo_x() + (self.root.winfo_width() - 400) // 2
         y = self.root.winfo_y() + (self.root.winfo_height() - 200) // 2
         top.geometry(f'400x200+{x}+{y}')
+        top.resizable(0, 0)  # Deshabilita maximizar y minimizar
+        top.grab_set()
 
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.grid(row=1, column=0, padx=5, pady=5)
@@ -318,12 +327,12 @@ class InversionApp:
         entry_detalle = tk.Text(top, wrap=tk.WORD, width=40, height=4)
         entry_detalle.grid(row=2, column=1, padx=5, pady=5)
         
-        
         def on_ok():
             fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
             monto = entry_monto.get()  # Obtener el monto ingresado
             self.guardar_ingreso(fecha_actual, detalle, monto)
+            top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cierra la ventana modal
 
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
