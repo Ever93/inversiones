@@ -53,16 +53,6 @@ def create_entry_with_validation(top, validate_function):
     entry = ttk.Entry(top, validate="key", validatecommand=vcmd)
     return entry
 
-def obtener_capital_inicial():
-    conn, c = conectar()
-    c.execute("SELECT fecha, monto FROM capitalinicial")
-    datos = c.fetchall()
-    conn.close()
-    return datos
-# Establecer la configuración local para el separador de miles
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
-
 def capital_clicked(self):
         top = tk.Toplevel()
         top.title('Cargar Capital')
