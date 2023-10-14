@@ -202,15 +202,17 @@ class InversionApp:
 
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.grid(row=1, column=0, padx=5, pady=5)
-        entry_monto = tk.Entry(top)
+        entry_monto = create_entry_with_validation(top, validate_monto)
         entry_monto.grid(row=1, column=1, padx=5, pady=5)
-        
+        entry_monto.focus_set()  # Establecer el foco en el campo de entrada
+        # Configura un controlador de evento para detectar cambios en el campo de entrada
+        entry_monto.bind("<KeyRelease>", lambda event, entry_monto=entry_monto: on_monto_change(event, entry_monto))
         lbl_detalle = tk.Label(top, text='Detalle:')
         lbl_detalle.grid(row=2, column=0, padx=5, pady=5)
         entry_detalle = tk.Text(top, wrap=tk.WORD, width=40, height=4)
         entry_detalle.grid(row=2, column=1, padx=5, pady=5)
         
-        entry_monto.focus_set()  # Establecer el foco en el campo de entrada
+        
         def on_ok():
             fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
@@ -227,7 +229,8 @@ class InversionApp:
         fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
         try:
-            monto = float(monto)
+            # Convierte el monto a un número entero eliminando comas y puntos
+            monto = int(monto.replace(',', '').replace('.', ''))
             c.execute("INSERT INTO egreso (fecha, detalle, monto) VALUES (?, ?, ?)", (fecha or fecha_actual, detalle, monto))
             conn.commit()
             # Restar el monto del egreso del saldo actual
