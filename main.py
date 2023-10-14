@@ -68,6 +68,7 @@ class InversionApp:
     def __init__(self, root):
         self.root = root
         self.root.geometry("1000x600+183+56")
+        self.root.iconbitmap('movitec.ico')
         self.root.title('Inversión')
         self.create_widgets()
         self.render_monto_capital()
