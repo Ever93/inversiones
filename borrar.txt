@@ -1,4 +1,0 @@
-self.LabelTitle.configure(activebackground="#f9f9f9")
-self.LabelTitle.configure(disabledforeground="#a3a3a3")
-self.LabelTitle.configure(highlightbackground="#d9d9d9")
-self.LabelTitle.configure(highlightcolor="black")

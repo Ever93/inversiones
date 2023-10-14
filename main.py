@@ -30,7 +30,6 @@ def validate_monto(new_value):
         return True
     return False
 
-
 def on_monto_change(event, entry_monto):
     # Obtiene el valor actual del campo de entrada
     current_value = entry_monto.get()
@@ -44,12 +43,26 @@ def on_monto_change(event, entry_monto):
         entry_monto.delete(0, tk.END)
         entry_monto.insert(0, formatted_value)
 
-
-# Función para crear un campo de entrada con validación
 def create_entry_with_validation(top, validate_function):
     vcmd = (top.register(validate_function), '%P')  # %P se refiere al nuevo valor
     entry = ttk.Entry(top, validate="key", validatecommand=vcmd)
     return entry
+
+def format_number_with_commas(number):
+    try:
+        # Verificar si el número es un entero o una cadena de texto
+        if isinstance(number, int):
+            number = str(number)
+        
+        # Convierte el número a un entero para eliminar puntos o comas
+        number = int(number.replace(',', '').replace('.', ''))
+        
+        # Formatea el número con comas como separadores de miles
+        formatted_number = f'{number:,}'
+        return formatted_number
+    except ValueError:
+        # En caso de error al formatear el número, devuelve el número original
+        return number
 
 class InversionApp:
     def __init__(self, root):
@@ -387,7 +400,8 @@ class InversionApp:
         if data:
             fecha, monto = data
             formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
-            self.LabelMonto.config(text=str(monto))
+            formatted_monto = format_number_with_commas(monto)# Formatea el monto con separadores de miles
+            self.LabelMonto.config(text=formatted_monto)
             self.LabelFechaCapital.config(text=formatted_date)
         else:
             self.LabelMonto.config(text='No disponible')  # En caso de que no haya datos en la tabla
@@ -402,7 +416,8 @@ class InversionApp:
         if data:
             fecha, monto = data
             formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
-            self.LabelSaldo.config(text=str(monto))
+            formatted_monto = format_number_with_commas(monto)# Formatea el monto con separadores de miles
+            self.LabelSaldo.config(text=formatted_monto)
             self.LabelFechaSaldo.config(text=formatted_date)
         else:
             self.LabelSaldo.config(text='No disponible')  # En caso de que no haya datos en la tabla
@@ -414,7 +429,9 @@ class InversionApp:
         conn.close()
         self.treeviewEgreso.delete(*self.treeviewEgreso.get_children())
         for row in rows:
-            self.treeviewEgreso.insert('', END, row[0], values=(row[1], row[2], row[3]))
+            # Formatear el monto antes de agregarlo al Treeview
+            formatted_monto = format_number_with_commas(row[3])
+            self.treeviewEgreso.insert('', END, row[0], values=(row[1], row[2], formatted_monto))
 
     def render_ingreso(self):
         conn, c = db.conectar()
@@ -422,7 +439,9 @@ class InversionApp:
         conn.close()
         self.treeviewIngreso.delete(*self.treeviewIngreso.get_children())
         for row in rows:
-            self.treeviewIngreso.insert('', END, row[0], values=(row[1], row[2], row[3]))
+            # Formatear el monto antes de agregarlo al Treeview
+            formatted_monto = format_number_with_commas(row[3])
+            self.treeviewIngreso.insert('', END, row[0], values=(row[1], row[2], formatted_monto))
 
     def exportar_excel(self):
         nombre_archivo = 'datos_inversiones.xlsx'
