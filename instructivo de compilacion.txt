@@ -1,10 +1,14 @@
-Si deseas incluir todos esos archivos, incluyendo export_excel.py, main.py, setup.py, 'Logo Movitec.png', db.py, inversiones.db, y movitec.ico como dependencias en tu aplicación ejecutable, debes asegurarte de que estos archivos estén disponibles y accesibles en el momento de crear el ejecutable. Aquí hay un ejemplo de cómo hacerlo utilizando cx_Freeze:
+Si deseas incluir todos esos archivos, incluyendo export_excel.py, main.py, setup.py,
+ 'Logo Movitec.png', db.py, inversiones.db, y movitec.ico como dependencias en tu aplicación ejecutable,
+ debes asegurarte de que estos archivos estén disponibles y accesibles en el momento de crear el ejecutable. 
+Aquí hay un ejemplo de cómo hacerlo utilizando cx_Freeze:
 
-Asegúrate de que todos los archivos mencionados estén presentes en la misma carpeta donde tienes tu script principal (main.py) y el script de configuración (setup.py).
+Asegúrate de que todos los archivos mencionados estén presentes en la misma carpeta donde tienes tu script principal (main.py)
+ y el script de configuración (setup.py).
 
 Modifica tu script de configuración (setup.py) para incluir estos archivos como recursos. Aquí tienes un ejemplo de cómo puedes hacerlo:
-Luego, ejecuta cx_Freeze para crear el ejecutable. Abre una ventana de comandos (terminal) en la misma ubicación que tus archivos y ejecuta el siguiente comando:
-bash
-Copy code
-python setup.py build
-Esto generará una carpeta llamada "build" que contendrá tu aplicación ejecutable. Deberías encontrar el archivo ejecutable (por ejemplo, main.exe) en la subcarpeta build/exe.win32-3.x si estás en Windows.
+Luego, ejecuta cx_Freeze para crear el ejecutable. Abre una ventana de comandos (terminal)
+ en la misma ubicación que tus archivos y ejecuta el siguiente comando:
+ python setup.py build
+Esto generará una carpeta llamada "build" que contendrá tu aplicación ejecutable. 
+Deberías encontrar el archivo ejecutable (por ejemplo, main.exe) en la subcarpeta build/exe.win32-3.x si estás en Windows.

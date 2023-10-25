@@ -67,7 +67,7 @@ def format_number_with_commas(number):
 class InversionApp:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("1000x600+183+56")
+        self.root.geometry("1100x600+183+56")
         self.root.iconbitmap('movitec.ico')
         self.root.title('Inversión')
         self.create_widgets()
@@ -135,6 +135,11 @@ class InversionApp:
         for col_name, col_text, col_width in column_configs:
             self.treeviewEgreso.heading(col_name, text=col_text)
             self.treeviewEgreso.column(col_name, width=col_width, stretch=True)
+        # Crear la barra de desplazamiento vertical
+        treeview_scrollbar_y = ttk.Scrollbar(self.root, orient="vertical", command=self.treeviewEgreso.yview)
+        treeview_scrollbar_y.place(relx=0.495, rely=0.467, relheight=0.452)
+        self.treeviewEgreso.configure(yscrollcommand=treeview_scrollbar_y.set)
+
         self.render_egreso()
         #Treview Ingreso
         self.treeviewIngreso = ttk.Treeview(self.root, columns=("Fecha", "Detalle", "Monto"), show="headings")
@@ -144,6 +149,10 @@ class InversionApp:
         for col_name, col_text, col_width in column_configs:
             self.treeviewIngreso.heading(col_name, text=col_text)
             self.treeviewIngreso.column(col_name, width=col_width, stretch=True)
+        # Crear la barra de desplazamiento vertical
+        treeview_scrollbar_y = ttk.Scrollbar(self.root, orient="vertical", command=self.treeviewIngreso.yview)
+        treeview_scrollbar_y.place(relx=0.986, rely=0.467, relheight=0.452)
+        self.treeviewIngreso.configure(yscrollcommand=treeview_scrollbar_y.set)
         self.render_ingreso()
         
     def capital_clicked(self):
@@ -165,11 +174,16 @@ class InversionApp:
         entry_monto.focus_set()  # Establecer el foco en el campo de entrada
         # Configura un controlador de evento para detectar cambios en el campo de entrada
         entry_monto.bind("<KeyRelease>", lambda event, entry_monto=entry_monto: on_monto_change(event, entry_monto))
+
         def on_ok():
             self.guardar_capital(entry_monto.get())
             top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cerrar la ventana modal
-
+            
+        def handle_enter(event):
+            on_ok()
+        # Configura la tecla Enter para llamar a handle_enter
+        top.bind('<Return>', handle_enter)
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
         btn_ok.pack()
         top.mainloop()
@@ -232,7 +246,6 @@ class InversionApp:
         entry_detalle = tk.Text(top, wrap=tk.WORD, width=40, height=4)
         entry_detalle.grid(row=2, column=1, padx=5, pady=5)
         
-        
         def on_ok():
             fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             detalle = entry_detalle.get("1.0", "end-1c")  # Obtener el detalle del cuadro de texto
@@ -240,7 +253,10 @@ class InversionApp:
             self.guardar_egreso(fecha_actual, detalle, monto)
             top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cierra la ventana modal
-
+        def handle_enter(event):
+            on_ok()
+        # Configura la tecla Enter para llamar a handle_enter
+        top.bind('<Return>', handle_enter)
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
         btn_ok.grid(row=3, column=1, padx=5, pady=5)
         top.mainloop()
@@ -335,7 +351,11 @@ class InversionApp:
             self.guardar_ingreso(fecha_actual, detalle, monto)
             top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cierra la ventana modal
-
+            
+        def handle_enter(event):
+            on_ok()
+        # Configura la tecla Enter para llamar a handle_enter
+        top.bind('<Return>', handle_enter)
         btn_ok = tk.Button(top, text='Ok', command=on_ok)
         btn_ok.grid(row=3, column=1, padx=5, pady=5)
         top.mainloop()
