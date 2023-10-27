@@ -94,12 +94,21 @@ class InversionApp:
         self.LabelFechaSaldo = tk.Label(self.root, text='''Fecha:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
         self.LabelFechaSaldo.place(relx=0.35, rely=0.305, height=30, width=87)
         
+        self.LabelTotalIngreso = tk.Label(self.root, text='''Ingreso:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
+        self.LabelTotalIngreso.place(relx=0.51, rely=0.4, height=30, width=87)
+        
+        self.LabelTotalEgreso = tk.Label(self.root, text='''Egreso:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
+        self.LabelTotalEgreso.place(relx=0.01, rely=0.4, height=30, width=87)
+        
+        self.LabelBalance = tk.Label(self.root, text='''Balance:''', background='#d9d9d9', compound='left', anchor='w', font=('Arial', 12))
+        self.LabelBalance.place(relx=0.68, rely=0.170, height=30, width=87)
+        
         ####Botones
         self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0, command=self.egreso_clicked)
-        self.ButtonEgreso.place(relx=0.21, rely=0.4, height=24, width=47)
+        self.ButtonEgreso.place(relx=0.45, rely=0.4, height=24, width=47)
         
         self.ButtonIngreso = tk.Button(self.root, text='''Ingreso''', background='#d9d9d9', compound='left', pady=0, command=self.ingreso_clicked)
-        self.ButtonIngreso.place(relx=0.74, rely=0.4, height=24, width=47)
+        self.ButtonIngreso.place(relx=0.94, rely=0.4, height=24, width=47)
 
         self.ButtonDeleteEgreso = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Eliminar''', command=self.eliminar_ultimo_egreso)
         self.ButtonDeleteEgreso.place(relx=0.44, rely=0.933, height=24, width=47)
@@ -113,18 +122,27 @@ class InversionApp:
         self.ButtonExport = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Exportar''', command=self.exportar_excel)
         self.ButtonExport.place(relx=0.01, rely=0.933, height=24, width=47)
         
-        #Label de contenido de solo lectura
+        #Label de contenido de solo lectura##########################################
         self.LabelMonto = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
-        self.LabelMonto.place(relx=0.13, rely=0.167, relheight=0.057, relwidth=0.144)
+        self.LabelMonto.place(relx=0.12, rely=0.170, relheight=0.050, relwidth=0.130)
         
         self.LabelSaldo = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
-        self.LabelSaldo.place(relx=0.13, rely=0.3, relheight=0.057, relwidth=0.144)
+        self.LabelSaldo.place(relx=0.12, rely=0.305, relheight=0.050, relwidth=0.130)
         
         self.LabelFechaCapital = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
-        self.LabelFechaCapital.place(relx=0.41, rely=0.167, relheight=0.057, relwidth=0.194)
+        self.LabelFechaCapital.place(relx=0.40, rely=0.170, relheight=0.051, relwidth=0.190)
 
         self.LabelFechaSaldo = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
-        self.LabelFechaSaldo.place(relx=0.41, rely=0.3, relheight=0.057, relwidth=0.194)
+        self.LabelFechaSaldo.place(relx=0.40, rely=0.305, relheight=0.050, relwidth=0.190)
+        
+        self.LabelIngreso = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
+        self.LabelIngreso.place(relx=0.57, rely=0.4, relheight=0.050, relwidth=0.130)
+        
+        self.LabelEgreso = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
+        self.LabelEgreso.place(relx=0.07, rely=0.4, relheight=0.050, relwidth=0.130)
+        
+        self.LabelBalance = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
+        self.LabelBalance.place(relx=0.74, rely=0.170, relheight=0.050, relwidth=0.130)
         
         # Crear el Treeview
         #Treeview Egreso
