@@ -437,7 +437,8 @@ class InversionApp:
             
                     self.render_ingreso()  # Actualizar la vista de Treeview con los nuevos datos
                     self.render_monto_saldo()
-                    self.calcular_suma_ingresos() 
+                    self.calcular_suma_ingresos()
+                    self.calcular_balance()  
         except sqlite3.Error as e:
             print("Error al eliminar el ingreso:", e)
         finally:
