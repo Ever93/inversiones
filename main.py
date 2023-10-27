@@ -3,9 +3,8 @@ import tkinter as tk
 import db
 import datetime
 from tkinter import *
-from tkinter import messagebox, ttk, filedialog
+from tkinter import messagebox, ttk
 import tkinter.messagebox
-import sys
 from export_excel import exportar_excel
 
 # Funciones de validación y formato de números
@@ -75,6 +74,8 @@ class InversionApp:
         self.render_monto_saldo()
         self.render_egreso()
         self.render_ingreso()
+        self.calcular_suma_egresos()
+        self.calcular_suma_ingresos()
         self.top = None
         
     def create_widgets(self):
@@ -299,6 +300,7 @@ class InversionApp:
             
             self.render_egreso()  # Actualiza la vista de Treeview con los nuevos datos
             self.render_monto_saldo()
+            self.calcular_suma_egresos()
             
         except sqlite3.Error as e:
             print("Error al guardar en la base de datos:", e)
@@ -334,6 +336,7 @@ class InversionApp:
             
                     self.render_egreso()  # Actualizar la vista de Treeview con los nuevos datos
                     self.render_monto_saldo()
+                    self.calcular_suma_egresos()
         except sqlite3.Error as e:
             print("Error al eliminar el egreso:", e)
         finally:
@@ -398,6 +401,7 @@ class InversionApp:
             
             self.render_ingreso()  # Actualiza la vista de Treeview con los nuevos datos
             self.render_monto_saldo()
+            self.calcular_suma_ingresos()
             
         except sqlite3.Error as e:
             print("Error al guardar en la base de datos:", e)
@@ -433,6 +437,7 @@ class InversionApp:
             
                     self.render_ingreso()  # Actualizar la vista de Treeview con los nuevos datos
                     self.render_monto_saldo()
+                    self.calcular_suma_ingresos() 
         except sqlite3.Error as e:
             print("Error al eliminar el ingreso:", e)
         finally:
@@ -494,6 +499,24 @@ class InversionApp:
     def exportar_excel(self):
         nombre_archivo = 'datos_inversiones.xlsx'
         exportar_excel(nombre_archivo)
+
+    def calcular_suma_egresos(self):
+        conn, c = db.conectar()
+        c.execute("SELECT monto FROM egreso")
+        montos = c.fetchall()
+        conn.close()
+        total_egresos = sum(monto[0] for monto in montos)
+        formatted_total_egresos = format_number_with_commas(total_egresos)
+        self.LabelEgreso.config(text=formatted_total_egresos)
+    
+    def calcular_suma_ingresos(self):
+        conn, c = db.conectar()
+        c.execute("SELECT monto FROM ingreso")
+        montos = c.fetchall()
+        conn.close()
+        total_ingresos = sum(monto[0] for monto in montos)
+        formatted_total_ingresos = format_number_with_commas(total_ingresos)
+        self.LabelIngreso.config(text=formatted_total_ingresos)
 
 root = Tk()
 app = InversionApp(root)
