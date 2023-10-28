@@ -52,10 +52,8 @@ def format_number_with_commas(number):
         # Verificar si el número es un entero o una cadena de texto
         if isinstance(number, int):
             number = str(number)
-        
         # Convierte el número a un entero para eliminar puntos o comas
         number = int(number.replace(',', '').replace('.', ''))
-        
         # Formatea el número con comas como separadores de miles
         formatted_number = f'{number:,}'
         return formatted_number
@@ -80,13 +78,13 @@ class InversionApp:
         self.top = None
         
     def create_widgets(self):
-        #Etiquetas
+        #Etiquetas (#height altura y width ancho)####################################################################
         self.LabelTitle = tk.Label(self.root, text='''Control de Inversión''', background='#d9d9d9', compound='center',relief='solid', font=('Arial', 16))
         self.LabelTitle.place(relx=0.38, rely=0.017, height=28, width=307)
         
         self.LabelCI = tk.Label(self.root, text='''Capital:''', background='#d9d9d9', compound='left', anchor='w',font=('Arial', 12))
         self.LabelCI.place(relx=0.065, rely=0.170, height=30, width=87)
-        #height altura y width ancho
+        
         self.LabelSaldo = tk.Label(self.root, text='''Saldo:''', background='#d9d9d9', compound='left', anchor='w', font=('Arial', 12))
         self.LabelSaldo.place(relx=0.067, rely=0.305, height=30, width=87)
         
@@ -105,7 +103,7 @@ class InversionApp:
         self.LabelBalance = tk.Label(self.root, text='''Balance:''', background='#d9d9d9', compound='left', anchor='w', font=('Arial', 12))
         self.LabelBalance.place(relx=0.68, rely=0.170, height=30, width=87)
         
-        ####Botones
+        ####Botones#############################################################################
         self.ButtonEgreso = tk.Button(self.root, text='''Egreso''', background='#d9d9d9', compound='left', pady=0, command=self.egreso_clicked)
         self.ButtonEgreso.place(relx=0.45, rely=0.4, height=24, width=47)
         
@@ -149,11 +147,10 @@ class InversionApp:
         self.LabelResultado = tk.Label(self.root, font=("TkTextFont", 10))
         self.LabelResultado.place(relx=0.87, rely=0.170, relheight=0.050, relwidth=0.060)
         
-        # Crear el Treeview
+        # Crear Treeview########################################################################
         #Treeview Egreso
         self.treeviewEgreso = ttk.Treeview(self.root, columns=("Fecha", "Detalle", "Monto"), show="headings")
         self.treeviewEgreso.place(relx=0.01, rely=0.467, relheight=0.452, relwidth=0.485)
-
         column_configs = [("Fecha", "Fecha", 100), ("Detalle", "Detalle", 200), ("Monto", "Monto", 100)]
         for col_name, col_text, col_width in column_configs:
             self.treeviewEgreso.heading(col_name, text=col_text)
@@ -162,12 +159,11 @@ class InversionApp:
         treeview_scrollbar_y = ttk.Scrollbar(self.root, orient="vertical", command=self.treeviewEgreso.yview)
         treeview_scrollbar_y.place(relx=0.495, rely=0.467, relheight=0.452)
         self.treeviewEgreso.configure(yscrollcommand=treeview_scrollbar_y.set)
-
         self.render_egreso()
+        
         #Treview Ingreso
         self.treeviewIngreso = ttk.Treeview(self.root, columns=("Fecha", "Detalle", "Monto"), show="headings")
         self.treeviewIngreso.place(relx=0.51, rely=0.467, relheight=0.452, relwidth=0.480)
-
         column_configs = [("Fecha", "Fecha", 100), ("Detalle", "Detalle", 200), ("Monto", "Monto", 100)]
         for col_name, col_text, col_width in column_configs:
             self.treeviewIngreso.heading(col_name, text=col_text)
@@ -182,14 +178,12 @@ class InversionApp:
         top = tk.Toplevel()
         top.title('Cargar Capital')
         top.geometry('250x100')
-        
         # Obtiene las dimensiones de la ventana principal
         x = self.root.winfo_x() + (self.root.winfo_width() - 250) // 2
         y = self.root.winfo_y() + (self.root.winfo_height() - 100) // 2
         top.geometry(f'250x100+{x}+{y}')
         top.resizable(0, 0)  # Deshabilita maximizar y minimizar
         top.grab_set()
-        
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.pack()
         entry_monto = create_entry_with_validation(top, validate_monto)
@@ -214,7 +208,6 @@ class InversionApp:
     def guardar_capital(self, monto):
         fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         conn, c = db.conectar()
-        
         try:
             # Convierte el monto a un número entero eliminando comas y puntos
             monto = int(monto.replace(',', '').replace('.', ''))
@@ -224,21 +217,19 @@ class InversionApp:
                 c.execute("UPDATE capitalinicial SET monto = ?, fecha = ? WHERE id = 1", (monto, fecha_actual))
             else:
                 c.execute("INSERT INTO capitalinicial (id, fecha, monto) VALUES (1, ?, ?)", (fecha_actual, monto))
-            
             # Comprobar si ya existe un registro en la tabla saldo
             c.execute("SELECT * FROM saldo WHERE id = 1")
             existing_record_saldo = c.fetchone()
-
             if existing_record_saldo:
             # Si el registro ya existe, actualiza el monto y la fecha
                 c.execute("UPDATE saldo SET monto = ?, fecha = ? WHERE id = 1", (monto, fecha_actual))
             else:
             # Si el registro no existe, crea uno nuevo
                 c.execute("INSERT INTO saldo (id, fecha, monto) VALUES (1, ?, ?)", (fecha_actual, monto))
-            
             conn.commit()
             self.render_monto_capital()
             self.render_monto_saldo()
+            
         except sqlite3.Error as e:
             print("Error al guardar en la base de datos:", e)
         finally:
@@ -256,7 +247,6 @@ class InversionApp:
         top.geometry(f'400x200+{x}+{y}')
         top.resizable(0, 0)  # Deshabilita maximizar y minimizar
         top.grab_set()
-        
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.grid(row=1, column=0, padx=5, pady=5)
         entry_monto = create_entry_with_validation(top, validate_monto)
@@ -276,6 +266,7 @@ class InversionApp:
             self.guardar_egreso(fecha_actual, detalle, monto)
             top.grab_release()  # Libera la ventana principal
             top.destroy()  # Cierra la ventana modal
+            
         def handle_enter(event):
             on_ok()
         # Configura la tecla Enter para llamar a handle_enter
@@ -287,7 +278,6 @@ class InversionApp:
     def guardar_egreso(self, fecha, detalle, monto):
         conn, c = db.conectar()
         fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
         try:
             # Convierte el monto a un número entero eliminando comas y puntos
             monto = int(monto.replace(',', '').replace('.', ''))
@@ -297,11 +287,9 @@ class InversionApp:
             c.execute("SELECT monto FROM saldo WHERE id = 1")
             saldo_actual = c.fetchone()[0]
             nuevo_saldo = saldo_actual - monto
-        
         # Actualizar el saldo en la base de datos
             c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
             conn.commit()
-            
             self.render_egreso()  # Actualiza la vista de Treeview con los nuevos datos
             self.render_monto_saldo()
             self.calcular_suma_egresos()
@@ -318,7 +306,6 @@ class InversionApp:
         # Obtener el último registro de egreso
             c.execute("SELECT id, monto FROM egreso ORDER BY id DESC LIMIT 1")
             ultimo_egreso = c.fetchone()
-        
             if ultimo_egreso:
                 egreso_id, egreso_monto = ultimo_egreso
                 # Mostrar un cuadro de diálogo de confirmación
@@ -327,20 +314,18 @@ class InversionApp:
             # Eliminar el último registro de egreso
                     c.execute("DELETE FROM egreso WHERE id = ?", (egreso_id,))
                     conn.commit()
-            
             # Obtener el saldo actual
                     c.execute("SELECT monto FROM saldo WHERE id = 1")
                     saldo_actual = c.fetchone()[0]
-            
             # Actualizar el saldo sumando el monto del egreso eliminado
                     nuevo_saldo = saldo_actual + egreso_monto
                     fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
                     conn.commit()
-            
                     self.render_egreso()  # Actualizar la vista de Treeview con los nuevos datos
                     self.render_monto_saldo()
                     self.calcular_suma_egresos()
+                    
         except sqlite3.Error as e:
             print("Error al eliminar el egreso:", e)
         finally:
@@ -356,7 +341,6 @@ class InversionApp:
         top.geometry(f'400x200+{x}+{y}')
         top.resizable(0, 0)  # Deshabilita maximizar y minimizar
         top.grab_set()
-
         lbl_monto = tk.Label(top, text='Monto:')
         lbl_monto.grid(row=1, column=0, padx=5, pady=5)
         entry_monto = create_entry_with_validation(top, validate_monto)
@@ -388,7 +372,6 @@ class InversionApp:
     def guardar_ingreso(self, fecha, detalle, monto):
         conn, c = db.conectar()
         fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
         try:
             # Convierte el monto a un número entero eliminando comas y puntos
             monto = int(monto.replace(',', '').replace('.', ''))
@@ -398,11 +381,9 @@ class InversionApp:
             c.execute("SELECT monto FROM saldo WHERE id = 1")
             saldo_actual = c.fetchone()[0]
             nuevo_saldo = saldo_actual + monto
-        
         # Actualizar el saldo en la base de datos
             c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
             conn.commit()
-            
             self.render_ingreso()  # Actualiza la vista de Treeview con los nuevos datos
             self.render_monto_saldo()
             self.calcular_suma_ingresos()
@@ -419,7 +400,6 @@ class InversionApp:
         # Obtener el último registro de egreso
             c.execute("SELECT id, monto FROM ingreso ORDER BY id DESC LIMIT 1")
             ultimo_ingreso = c.fetchone()
-        
             if ultimo_ingreso:
                 ingreso_id, ingreso_monto = ultimo_ingreso
                 # Mostrar un cuadro de diálogo de confirmación
@@ -428,21 +408,19 @@ class InversionApp:
             # Eliminar el último registro de egreso
                     c.execute("DELETE FROM ingreso WHERE id = ?", (ingreso_id,))
                     conn.commit()
-            
             # Obtener el saldo actual
                     c.execute("SELECT monto FROM saldo WHERE id = 1")
                     saldo_actual = c.fetchone()[0]
-            
             # Actualizar el saldo sumando el monto del egreso eliminado
                     nuevo_saldo = saldo_actual - ingreso_monto
                     fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     c.execute("UPDATE saldo SET fecha = ?, monto = ? WHERE id = 1", (fecha_actual, nuevo_saldo))
                     conn.commit()
-            
                     self.render_ingreso()  # Actualizar la vista de Treeview con los nuevos datos
                     self.render_monto_saldo()
                     self.calcular_suma_ingresos()
-                    self.calcular_balance()  
+                    self.calcular_balance()
+                    
         except sqlite3.Error as e:
             print("Error al eliminar el ingreso:", e)
         finally:
@@ -454,7 +432,6 @@ class InversionApp:
         c.execute("SELECT fecha, monto FROM capitalinicial WHERE id = 1")
         data= c.fetchone()
         conn.close()
-    
         if data:
             fecha, monto = data
             formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
@@ -470,7 +447,6 @@ class InversionApp:
         c.execute("SELECT fecha, monto FROM saldo WHERE id = 1")
         data= c.fetchone()
         conn.close()
-    
         if data:
             fecha, monto = data
             formatted_date = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
@@ -531,19 +507,15 @@ class InversionApp:
         ingresos = c.fetchall()
         conn.close()
         total_ingresos = sum(ingreso[0] for ingreso in ingresos)
-
         conn, c = db.conectar()
         c.execute("SELECT monto FROM egreso")
         egresos = c.fetchall()
         conn.close()
         total_egresos = sum(egreso[0] for egreso in egresos)
-
         # Calcular el balance restando los egresos de los ingresos
         balance = total_ingresos - total_egresos
-
         formatted_balance = format_number_with_commas(balance)
         self.LabelBalance.config(text=formatted_balance)
-        
         # Mostrar el mensaje correspondiente
         if balance < 0:
             self.LabelResultado.config(text="Perdida")
