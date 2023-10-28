@@ -146,6 +146,9 @@ class InversionApp:
         self.LabelBalance = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelBalance.place(relx=0.74, rely=0.170, relheight=0.050, relwidth=0.130)
         
+        self.LabelResultado = tk.Label(self.root, font=("TkTextFont", 10))
+        self.LabelResultado.place(relx=0.87, rely=0.170, relheight=0.050, relwidth=0.060)
+        
         # Crear el Treeview
         #Treeview Egreso
         self.treeviewEgreso = ttk.Treeview(self.root, columns=("Fecha", "Detalle", "Monto"), show="headings")
@@ -540,6 +543,14 @@ class InversionApp:
 
         formatted_balance = format_number_with_commas(balance)
         self.LabelBalance.config(text=formatted_balance)
+        
+        # Mostrar el mensaje correspondiente
+        if balance < 0:
+            self.LabelResultado.config(text="Perdida")
+        elif balance > 0:
+            self.LabelResultado.config(text="Ganancia")
+        else:
+            self.LabelResultado.config(text="")
         
 root = Tk()
 app = InversionApp(root)
