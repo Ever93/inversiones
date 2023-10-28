@@ -76,6 +76,7 @@ class InversionApp:
         self.render_ingreso()
         self.calcular_suma_egresos()
         self.calcular_suma_ingresos()
+        self.calcular_balance()
         self.top = None
         
     def create_widgets(self):
@@ -509,6 +510,7 @@ class InversionApp:
         total_egresos = sum(monto[0] for monto in montos)
         formatted_total_egresos = format_number_with_commas(total_egresos)
         self.LabelEgreso.config(text=formatted_total_egresos)
+        self.calcular_balance()
     
     def calcular_suma_ingresos(self):
         conn, c = db.conectar()
@@ -518,7 +520,27 @@ class InversionApp:
         total_ingresos = sum(monto[0] for monto in montos)
         formatted_total_ingresos = format_number_with_commas(total_ingresos)
         self.LabelIngreso.config(text=formatted_total_ingresos)
+        self.calcular_balance()
 
+    def calcular_balance(self):
+        conn, c = db.conectar()
+        c.execute("SELECT monto FROM ingreso")
+        ingresos = c.fetchall()
+        conn.close()
+        total_ingresos = sum(ingreso[0] for ingreso in ingresos)
+
+        conn, c = db.conectar()
+        c.execute("SELECT monto FROM egreso")
+        egresos = c.fetchall()
+        conn.close()
+        total_egresos = sum(egreso[0] for egreso in egresos)
+
+        # Calcular el balance restando los egresos de los ingresos
+        balance = total_ingresos - total_egresos
+
+        formatted_balance = format_number_with_commas(balance)
+        self.LabelBalance.config(text=formatted_balance)
+        
 root = Tk()
 app = InversionApp(root)
 root.mainloop()
