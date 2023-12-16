@@ -122,6 +122,11 @@ class InversionApp:
         self.ButtonExport = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Exportar''', command=self.exportar_excel)
         self.ButtonExport.place(relx=0.01, rely=0.933, height=24, width=47)
         
+        self.ButtonContar = tk.Button(self.root, background="#d9d9d9", compound='left', pady="0", text='''Contar''', command=self.contar_clicked)
+        self.ButtonContar.place(relx=0.74, rely=0.305,
+                                relheight=0.050, relwidth=0.130)
+
+        
         #Label de contenido de solo lectura##########################################
         self.LabelMonto = tk.Label(self.root, background="white", font=("TkTextFont", 12), relief="solid", borderwidth=1)
         self.LabelMonto.place(relx=0.12, rely=0.170, relheight=0.050, relwidth=0.130)
@@ -173,7 +178,70 @@ class InversionApp:
         treeview_scrollbar_y.place(relx=0.986, rely=0.467, relheight=0.452)
         self.treeviewIngreso.configure(yscrollcommand=treeview_scrollbar_y.set)
         self.render_ingreso()
-        
+    
+
+    def contar_clicked(self):
+        top = tk.Toplevel()
+        top.title('Contar Efectivo')
+        top.geometry('350x350')
+        # Obtiene las dimensiones de la ventana principal
+        x = self.root.winfo_x() + (self.root.winfo_width() - 350) // 2
+        y = self.root.winfo_y() + (self.root.winfo_height() - 350) // 2
+        top.geometry(f'350x350+{x}+{y}')
+        top.resizable(0, 0)  # Deshabilita maximizar y minimizar
+        top.grab_set()
+
+    # L# Lógica para contar los billetes (este es un ejemplo simple)
+        self.billetes = {
+            100000: tk.StringVar(value=""),
+            50000: tk.StringVar(value=""),
+            20000: tk.StringVar(value=""),
+            10000: tk.StringVar(value=""),
+            5000: tk.StringVar(value=""),
+            2000: tk.StringVar(value=""),
+            1000: tk.StringVar(value=""),
+            500: tk.StringVar(value="")
+        }
+
+        for i, (denominacion, var) in enumerate(self.billetes.items()):
+            lbl_text = f'Billete de {self.format_denomination(denominacion)}:'
+            lbl_billete = ttk.Label(top, text=lbl_text)
+            lbl_billete.grid(row=i, column=0, padx=10, pady=5)
+
+            entry_billete = ttk.Entry(top, textvariable=var)
+            entry_billete.grid(row=i, column=1, padx=10, pady=5)
+
+            if i == 0:
+                entry_billete.focus()
+
+            # Configurar el rastreo ('write') directamente en el StringVar
+            var.trace_add('write', lambda *args,
+                          var=var: self.calcular_total())
+
+        limpiar_button = ttk.Button(
+            top, text="Limpiar", command=self.limpiar_campos)
+        limpiar_button.grid(row=len(self.billetes), column=1, padx=10, pady=5)
+
+        self.total_label = ttk.Label(top, text="Total: $0", font=("Arial", 14))
+        self.total_label.grid(row=len(self.billetes)+1, columnspan=2, padx=20, pady=5)
+
+    def calcular_total(self, *args):
+        total = sum(denominacion * (int(var.get()) if var.get().isdigit() else 0)
+                    for denominacion, var in self.billetes.items())
+        total_formateado = "{:,.0f}".format(total).replace(",", ".")
+        self.total_label.config(text=f"Total: {total_formateado} Gs.")
+
+    def limpiar_campos(self):
+        for var in self.billetes.values():
+            var.set("")
+        self.total_label.config(text="Total: $0")
+
+    def format_denomination(self, value):
+        if isinstance(value, int):
+            return f"{value:,.0f}".replace(",", ".")
+        else:
+            return value  # Devuelve la cadena sin modificar si no es un número
+
     def capital_clicked(self):
         top = tk.Toplevel()
         top.title('Cargar Capital')
